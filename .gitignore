@@ -1,3 +1,4 @@
 *.pyc
 *.swp
 .vscode/
+record_demonstration_with_eye_tracker/data/*
