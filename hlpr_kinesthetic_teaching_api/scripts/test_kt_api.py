@@ -30,10 +30,11 @@
 
 import rospy
 from hlpr_kinesthetic_teaching_api.kinesthetic_teaching_api import KTInterface
-
+from std_msgs.msg import String
 
 if __name__=="__main__":
     rospy.init_node("kt_api_testing")
+    pub = rospy.Publisher('log_KTframe', String, queue_size=10)
     k = KTInterface("~/test_bagfiles")
 
     rospy.sleep(0.5)
@@ -70,6 +71,7 @@ if __name__=="__main__":
         r = raw_input()
         if r == '':
             k.write_kf()
+            pub.publish("Recorded keyframe")
         elif r=='d':
             k.remove_current_frame()
         elif r=='n':
