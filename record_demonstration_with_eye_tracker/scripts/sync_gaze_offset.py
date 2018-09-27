@@ -88,7 +88,7 @@ while success:
 	#print(all_vts)
 	less = [a for a in all_vts if a<=frame_ts]
 	idx = len(less)-1
-	print(idx)
+	# print(idx)
 	# start = less[-1]
 	if idx<len(model):
 		m,c = model[idx]
