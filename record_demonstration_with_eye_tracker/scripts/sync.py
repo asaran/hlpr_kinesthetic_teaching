@@ -1,6 +1,9 @@
 import cv2
 import ast
 from bisect import bisect_left
+from numpy import ones,vstack
+from numpy.linalg import lstsq
+
 
 
 def takeClosest(myList, myNumber):
@@ -21,8 +24,33 @@ def takeClosest(myList, myNumber):
 	else:
 	   return before
 
+def color_dist(color1, color2):
+	r1,g1,b1 = color1
+	r2,g2,b2 = color2
+	color_d = pow(r1-r2,2) + pow(g1-g2,2) + pow(b1-b2,2)
+	mean_rgb = ((r1+r2)/2, (g1+g2)/2, (b1+b2)/2)
+	return color_d, mean_rgb
+
+
+def is_known_color(color):
+	known_colors = {
+	'red': [[100,255],[0,50],[0,50]],
+	'green': [[0,50],[100,255],[0,50]],
+	'yellow': [[200,255],[200,255],[0,125]]
+	}
+
+	r,g,b = color
+	for color in known_colors.keys():
+		if r>color[0][0] and r<color[0][1]:
+			if g>color[1][0] and g<color[1][1]:
+				if b>color[2][0] and b<color[2][1]:
+					return color
+	return None
+
+
 
 def sync_func(data, video_file):
+	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
 	vid2ts = {}     # dictionary mapping video time to time stamps in json
 	right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
 
@@ -56,25 +84,27 @@ def sync_func(data, video_file):
 		x_coords, y_coords = zip(*points)
 		A = vstack([x_coords,ones(len(x_coords))]).T
 		m, c = lstsq(A, y_coords, rcond=None)[0]
-		print("Line Solution is ts = {m}vts + {c}".format(m=m,c=c))
+		#print("Line Solution is ts = {m}vts + {c}".format(m=m,c=c))
 		model.append((m,c))
 
 
 
 	vidcap = cv2.VideoCapture(video_file)
 	fps = vidcap.get(cv2.CAP_PROP_FPS)
-	print fps 	#25 fps
+	#print fps 	#25 fps
 	success, img = vidcap.read()
 
-	fourcc = cv2.VideoWriter_fourcc(*'XVID')
-	video = cv2.VideoWriter('gaze.avi',fourcc,fps,(1920,1080))
+	#fourcc = cv2.VideoWriter_fourcc(*'XVID')
+	#video = cv2.VideoWriter('gaze.avi',fourcc,fps,(1920,1080))
 
+	last_fixation_color =(0,0,0)
 	all_ts = sorted(gp.keys())
 	count = 0
 	imgs = []       # list of image frames
 	frame2ts = []   # corresponding list of video time stamp values in microseconds
 	while success:	
-		print(count)
+		
+		#print(count)
 		frame_ts = int((count/fps)*1000000)
 		frame2ts.append(frame_ts)
 		#print('Read a new frame: ', success)
@@ -93,11 +123,31 @@ def sync_func(data, video_file):
 		tracker_ts = takeClosest(all_ts,ts)
 		#print('tracker_ts_pos: ', tracker_ts)
 		gaze = gp[tracker_ts]
-		cv2.circle(img,(int(gaze[0]*1920), int(gaze[1]*1080)), 5, (0,255,0), -1)
-		video.write(img)
+		gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
+		#print(gaze_coords)
+		r,g,b = img[gaze_coords[1]][gaze_coords[0]]
+		if(count==0):
+			last_fixation_color = (r,g,b)
+			t = 0
+
+		cd, mean_rgb = color_dist((r,g,b),last_fixation_color)
+		if(cd<0.1):
+			t = t + frame_ts
+			
+		else:
+			if(t>100):
+				if is_known_color(mean_rgb) is not None:
+					fixations[is_known_color(mean_rgb)].append(t)
+				else:
+					fixations['other'].append(t)
+			t = 0
+
+		#cv2.circle(img,(int(gaze[0]*1920), int(gaze[1]*1080)), 5, (0,255,0), -1)
+		#video.write(img)
 
 		count += 1
 		success, img = vidcap.read()
 
 	cv2.destroyAllWindows()
-	video.release()
+	#video.release()
+	return fixations
