@@ -4,6 +4,36 @@ from bisect import bisect_left
 from numpy import ones,vstack
 from numpy.linalg import lstsq
 import numpy as np
+import math
+
+hist = {
+	0: 0,
+	10: 0,
+	20: 0,
+	30: 0,
+	40: 0,
+	50: 0,
+	60: 0,
+	70: 0,
+	80: 0,
+	90: 0,
+	100: 0,
+	110: 0,
+	120: 0,
+	130: 0,
+	140: 0,
+	150: 0,
+	160: 0,
+	170: 0,
+	180: 0,
+	190: 0,
+	200: 0,
+	210: 0,
+	220: 0,
+	230: 0,
+	240: 0,
+	250: 0
+}
 
 
 def takeClosest(myList, myNumber):
@@ -31,6 +61,11 @@ def color_dist(color1, color2):
 	mean_rgb = ((r1+r2)/2, (g1+g2)/2, (b1+b2)/2)
 	return color_d, mean_rgb
 
+def pixel_dist(p1,p2):
+	x1, y1 = p1
+	x2, y2 = p2
+	d = pow(x1-x2,2) + pow(y1-y2,2)
+	return math.sqrt(d)
 
 def is_known_color(color):
 	known_colors = {
@@ -56,6 +91,8 @@ def is_known_color(color):
 
 
 def sync_func(data, video_file):
+
+
 	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
 	vid2ts = {}     # dictionary mapping video time to time stamps in json
 	right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
@@ -80,6 +117,8 @@ def sync_func(data, video_file):
 		if 'gp' in d and d['s']==0 :
 			gp[d['ts']] = d['gp']   #list of 2 coordinates
 	print('read json')
+
+
 
 	# map vts to ts
 	all_vts = sorted(vid2ts.keys())
@@ -112,7 +151,7 @@ def sync_func(data, video_file):
 	while success:			
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 		#print(count)
-		frame_ts = int((1.0/fps)*1000000)
+		frame_ts = int((count/fps)*1000000)
 		frame2ts.append(frame_ts)
 		#print('Read a new frame: ', success)
 		#print('frame_ts: ', frame_ts)
@@ -134,29 +173,42 @@ def sync_func(data, video_file):
 		#print(gaze_coords)
 		h,s,v = img[gaze_coords[1]][gaze_coords[0]]
 		if(count==0):
-			last_fixation_color = (h,s,v)
-			t = 0
+		# 	last_fixation_color = (h,s,v)
+		 	t = 0
+		 	last_gaze_pt = gaze_coords
 
-		cd, mean_hsv = color_dist((h,s,v),last_fixation_color)
-		if(cd<10):
-			t = t + int((count/fps)*1000)
-			
+		p_dist = pixel_dist(gaze_coords,last_gaze_pt)
+		if(p_dist<10):
+			t = t + int((1.0/fps)*1000000)
+
 		else:
-			if(t>100):
-				if is_known_color(mean_hsv) is not None:
-					fixations[is_known_color(mean_hsv)].append(t)
-				else:
-					fixations['other'].append(t)
+			if(t>100000):
+				hist[(h/10)*10] += 1 
 			t = 0
+		# cd, mean_hsv = color_dist((h,s,v),last_fixation_color)
+		# if(cd<10):
+		# 	t = t + int((1.0/fps)*1000)
+			
+		# else:
+		# 	if(t>100):
+		# 		if is_known_color(mean_hsv) is not None:
+		# 			fixations[is_known_color(mean_hsv)].append(t)
+		# 		else:
+		# 			fixations['other'].append(t)
+		# 	t = 0
 
-		#cv2.circle(img,(int(gaze[0]*1920), int(gaze[1]*1080)), 5, (0,255,0), -1)
-		#video.write(img)
-		last_fixation_color = (h,s,v)
+		# #cv2.circle(img,(int(gaze[0]*1920), int(gaze[1]*1080)), 5, (0,255,0), -1)
+		# #video.write(img)
+
+		# last_fixation_color = (h,s,v)
+		last_gaze_pt = gaze_coords
 
 		count += 1
 		success, img = vidcap.read()
 
 
+
 	cv2.destroyAllWindows()
 	#video.release()
-	return fixations
+	vidcap.release()
+	return hist

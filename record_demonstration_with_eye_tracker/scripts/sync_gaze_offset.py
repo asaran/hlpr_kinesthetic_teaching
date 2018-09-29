@@ -3,7 +3,7 @@ from numpy.linalg import lstsq
 import cv2
 import ast 
 
-with open ("/media/akanksha/pearl_Gemini/IRL/KT1/q2c6k4b/segments/1/livedata.json", "r") as myfile:
+with open ("/media/akanksha/pearl_Gemini/IRL/KT1/q2c6k4b/segments/2/livedata.json", "r") as myfile:
 	data=myfile.readlines()
 
 for r in range(len(data)):
@@ -67,13 +67,13 @@ def takeClosest(myList, myNumber):
 	   return before
 
 
-vidcap = cv2.VideoCapture('/media/akanksha/pearl_Gemini/IRL/KT1/q2c6k4b/segments/1/fullstream.mp4')
+vidcap = cv2.VideoCapture('/media/akanksha/pearl_Gemini/IRL/KT1/q2c6k4b/segments/2/fullstream.mp4')
 fps = vidcap.get(cv2.CAP_PROP_FPS)
 print fps 	#25 fps
 success, img = vidcap.read()
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-video = cv2.VideoWriter('gaze.avi',fourcc,fps,(1920,1080))
+video = cv2.VideoWriter('gaze2.avi',fourcc,fps,(1920,1080))
 
 all_ts = sorted(gp.keys())
 count = 0

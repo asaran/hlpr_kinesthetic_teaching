@@ -2,7 +2,8 @@ import cv2
 import ast 
 import os
 import gzip
-from sync import sync_func 
+from sync_hist import sync_func
+
 
 main_dir = '/media/akanksha/pearl_Gemini/IRL/'
 users = os.listdir(main_dir)
@@ -10,6 +11,14 @@ print(users)
 
 order = {'KT1':'kvpb','KT2':'kvbp','KT3':'vkpb','KT4':'vkbp','KT5':'kvbp','KT6':'kvbp','KT7':'vkbp','KT8':'vkpb','KT9':'kvpb','KT10':'kvbp',\
         'KT11':'vkpb','KT12':'vkbp','KT13':'kvbp','KT14':'kvpb','KT15':'vkbp','KT16':'vkpb','KT17':'kvpb','KT18':'vkbp','KT19':'vkpb','KT20':'vkbp'}
+
+hist_kp, hist_kb, hist_vp, hist_vb = {}, {}, {}, {}
+hists = {
+    'kp': hist_kp,
+    'kb': hist_kb,
+    'vp': hist_vp,
+    'vb': hist_vb
+}
 
 for user in users:
     print(user) #KT1,KT2
@@ -25,9 +34,12 @@ for user in users:
 
     exps = order[user]
 
-
     for seg in d:
         print('Segment ', seg)
+        demo_type = exps[0] if int(seg)<=2 else exps[1]
+        cond = exps[2] if (int(seg)==1 or int(seg)==3) else exps[3]
+        exp_id = demo_type + cond
+
         data = []
         files = os.listdir(a+seg)
         
@@ -46,9 +58,12 @@ for user in users:
 
         #if(file.endswith(".mp4")):
         video_file = a+seg+'/fullstream.mp4'
-        fixations = sync_func(data, video_file)
-        print(fixations)
+        hist = sync_func(data, video_file)
+        print(hist)
 
+        curr_hist = hists[exp_id]
+        hists[exp_id] = {k: curr_hist.get(k, 0) + hist.get(k, 0) for k in set(curr_hist) | set(hist)}
+        
         """
         vidcap = cv2.VideoCapture(a+seg+'/fullstream.mp4')
         fps = vidcap.get(cv2.CAP_PROP_FPS)
@@ -69,3 +84,5 @@ for user in users:
             #print(count)
         print('read', str(count),'image frames')
         """
+
+print(hists)
