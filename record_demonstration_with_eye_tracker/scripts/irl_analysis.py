@@ -36,6 +36,8 @@ for user in users:
 
     for seg in d:
         print('Segment ', seg)
+        if(int(seg)==3 or int(seg)==4):
+            continue
         demo_type = exps[0] if int(seg)<=2 else exps[1]
         cond = exps[2] if (int(seg)==1 or int(seg)==3) else exps[3]
         exp_id = demo_type + cond

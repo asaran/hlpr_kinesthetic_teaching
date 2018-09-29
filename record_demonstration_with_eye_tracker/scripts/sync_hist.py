@@ -208,7 +208,8 @@ def sync_func(data, video_file):
 
 
 
+	vidcap.release()
 	cv2.destroyAllWindows()
 	#video.release()
-	vidcap.release()
+
 	return hist
