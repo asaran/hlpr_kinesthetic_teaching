@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-main_dir = '/media/akanksha/pearl_Gemini/IRL/'
+main_dir = '/media/asaran/pearl_Gemini/IRL/'
 users = os.listdir(main_dir)
 print(users)
 
@@ -20,6 +20,13 @@ hists = {
     'kb': hist_kb,
     'vp': hist_vp,
     'vb': hist_vb
+}
+
+condition_names = {
+    'k': 'KT demo',
+    'v': 'Video demo',
+    'p': 'plate target',
+    'b': 'bowl target'
 }
 
 #for user in users:
@@ -68,8 +75,10 @@ for i in range(0,2):
         #fig = plt.figure()
         #for i,c in enumerate(timeline):
         #    print(c[2],c[1],c[0])
-        print(range(0,len(timeline)*10,10))
+        #print(range(0,len(timeline)*10,10))
         plt.scatter(range(0,len(timeline)*10,10),np.repeat(1,len(timeline)),color=timeline, s=5)
+        title = 'User #'+str(i)+': '+condition_names[exp_id[0]]+', '+condition_names[exp_id[1]]
+        plt.title(title)
         plt.show()
         #print(hist)
 

@@ -3,7 +3,9 @@ from numpy.linalg import lstsq
 import cv2
 import ast 
 
-with open ("/media/akanksha/pearl_Gemini/IRL/KT1/q2c6k4b/segments/2/livedata.json", "r") as myfile:
+
+
+with open ("/media/asaran/pearl_Gemini/IRL/KT2/rjt7rgw/segments/3/livedata.json", "r") as myfile:
 	data=myfile.readlines()
 
 for r in range(len(data)):
@@ -41,8 +43,8 @@ model = []
 for i in range(1,len(all_vts)):
 	points = [(a,vid2ts[a]),(all_vts[i],vid2ts[all_vts[i]])]
 	x_coords, y_coords = zip(*points)
-	A = vstack([x_coords,ones(len(x_coords))]).T
-	m, c = lstsq(A, y_coords, rcond=None)[0]
+	A = vstack([x_coords, ones(len(x_coords))]).T
+	m, c = lstsq(A, y_coords)[0]
 	print("Line Solution is ts = {m}vts + {c}".format(m=m,c=c))
 	model.append((m,c))
 
@@ -67,7 +69,7 @@ def takeClosest(myList, myNumber):
 	   return before
 
 
-vidcap = cv2.VideoCapture('/media/akanksha/pearl_Gemini/IRL/KT1/q2c6k4b/segments/2/fullstream.mp4')
+vidcap = cv2.VideoCapture('/media/asaran/pearl_Gemini/IRL/KT2/rjt7rgw/segments/3/fullstream.mp4')
 fps = vidcap.get(cv2.CAP_PROP_FPS)
 print fps 	#25 fps
 success, img = vidcap.read()

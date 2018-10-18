@@ -128,7 +128,7 @@ def sync_func(data, video_file):
 		points = [(a,vid2ts[a]),(all_vts[i],vid2ts[all_vts[i]])]
 		x_coords, y_coords = zip(*points)
 		A = vstack([x_coords,ones(len(x_coords))]).T
-		m, c = lstsq(A, y_coords, rcond=None)[0]
+		m, c = lstsq(A, y_coords)[0]
 		#print("Line Solution is ts = {m}vts + {c}".format(m=m,c=c))
 		model.append((m,c))
 		a = all_vts[i]
@@ -250,7 +250,7 @@ def get_color_timeline(data, video_file):
 		points = [(a,vid2ts[a]),(all_vts[i],vid2ts[all_vts[i]])]
 		x_coords, y_coords = zip(*points)
 		A = vstack([x_coords,ones(len(x_coords))]).T
-		m, c = lstsq(A, y_coords, rcond=None)[0]
+		m, c = lstsq(A, y_coords)[0]
 		model.append((m,c))
 		a = all_vts[i]
 
