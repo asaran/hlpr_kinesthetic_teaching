@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-main_dir = '/media/asaran/pearl_Gemini/IRL/'
+main_dir = '/media/asaran/pearl_Gemini/novices/'    #IRL
 users = os.listdir(main_dir)
 print(users)
 
@@ -29,8 +29,12 @@ condition_names = {
     'b': 'bowl target'
 }
 
+
+plt.figure(1, figsize=(20,5))
+plt.figure(2, figsize=(20,5))
+
 #for user in users:
-for i in range(0,2):
+for i in range(len(users)):
     user = users[i]
     print(user) #KT1,KT2
     dir_name = os.listdir(main_dir+user)
@@ -67,19 +71,28 @@ for i in range(0,2):
                     for r in range(len(data)):
                         row = data[r]
                         data[r] = ast.literal_eval(row.strip('\n'))
-        #print(data)
 
-        #if(file.endswith(".mp4")):
         video_file = a+seg+'/fullstream.mp4'
         timeline = get_color_timeline(data, video_file)
-        #fig = plt.figure()
-        #for i,c in enumerate(timeline):
-        #    print(c[2],c[1],c[0])
-        #print(range(0,len(timeline)*10,10))
-        plt.scatter(range(0,len(timeline)*10,10),np.repeat(1,len(timeline)),color=timeline, s=5)
-        title = 'User #'+str(i)+': '+condition_names[exp_id[0]]+', '+condition_names[exp_id[1]]
-        plt.title(title)
-        plt.show()
-        #print(hist)
 
-        
+        # plt.figure(figsize=(15,3))
+        if(demo_type=='k' and cond=='p'):
+            plt.figure(1)
+            plt.scatter(range(0,len(timeline)*10,10),np.repeat(i,len(timeline)),color=timeline, s=5)
+            #plt.show()
+        if(demo_type=='k' and cond=='b'):
+            plt.figure(2)
+            plt.scatter(range(0,len(timeline)*10,10),np.repeat(i,len(timeline)),color=timeline, s=5)
+            #plt.show()
+        #title = 'User #'+str(i)+': '+condition_names[demo_type]+', '+condition_names[cond]
+        # plt.savefig('vis/'+title)
+
+plt.figure(1)
+title = 'KT demo: plate target'
+plt.title(title)    
+plt.savefig('vis/'+title)
+
+plt.figure(2)
+title = 'KT demo: bowl target'
+plt.title(title)    
+plt.savefig('vis/'+title)

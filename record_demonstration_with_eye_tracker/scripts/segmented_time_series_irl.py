@@ -6,6 +6,7 @@ from sync_hist import get_color_timeline
 import matplotlib.pyplot as plt
 import numpy as np
 
+bag_dir = '/media/asaran/pearl_Gemini/gaze_lfd_user_study/'
 
 main_dir = '/media/asaran/pearl_Gemini/IRL/'
 users = os.listdir(main_dir)
@@ -33,7 +34,7 @@ condition_names = {
 # naive versus expert users
 
 #for user in users:
-for i in range(0,2):
+for i in range(0,1):
     user = users[i]
     print(user) #KT1,KT2
     dir_name = os.listdir(main_dir+user)
@@ -52,7 +53,12 @@ for i in range(0,2):
     # read bagfile, get corresponding gaze video timestamp
     # put a marker in the graph for each KT segment recording
 
+    # experts - user 1, 2, 4, 5, 6, 8, 12, 13, 18, 19 
+    # novices - user 3, 7, 9, 10, 11, 14, 15, 16, 17, 20
 
+    bagloc = bag_dir + user + '/bags/'
+    bagfiles = os.listdir(bagloc)
+    
     # conditions
     for seg in d:
         print('Segment ', seg)
@@ -78,9 +84,15 @@ for i in range(0,2):
                         data[r] = ast.literal_eval(row.strip('\n'))
         #print(data)
 
+        for file in bagfiles:
+            if (file.endswith("kt-irl-bowl.bag") and demo_type=='k' and cond=='b'):
+                bag_file = bagloc + file
+            else if(file.endswith("kt-irl-plate.bag") and demo_type=='k' and cond=='p'):
+                bag_file = bagloc + file
+
         #if(file.endswith(".mp4")):
         video_file = a+seg+'/fullstream.mp4'
-        timeline = get_color_timeline(data, video_file)
+        timeline = get_color_timeline_with_seg(data, video_file, bag_file)
         #fig = plt.figure()
         #for i,c in enumerate(timeline):
         #    print(c[2],c[1],c[0])

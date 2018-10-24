@@ -296,3 +296,93 @@ def get_color_timeline(data, video_file):
 	vidcap.release()
 	cv2.destroyAllWindows()
 	return timeline
+
+
+
+
+def get_color_timeline(data, video_file, bag_file):
+	timeline = []
+	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
+	vid2ts = {}     # dictionary mapping video time to time stamps in json
+	right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
+
+	for d in data:
+		if 'vts' in d and d['s']==0:
+			if d['vts'] == 0:
+				vid2ts[d['vts']] = d['ts']
+			else:
+				#vid_time = d['ts'] - d['vts']
+				vid2ts[d['vts']] = d['ts']
+
+		# TODO: if multiple detections for same time stamp?
+		if 'pd' in d and d['s']==0 and d['eye']=='right':
+			right_eye_pd[d['ts']] = d['pd']
+		if 'pd' in d and d['s']==0 and d['eye']=='left':
+			left_eye_pd[d['ts']] = d['pd']
+
+		if 'gp' in d and d['s']==0 :
+			gp[d['ts']] = d['gp']   #list of 2 coordinates
+	print('read json')
+
+
+
+	# map vts to ts
+	all_vts = sorted(vid2ts.keys())
+	a = all_vts[0]
+	model = []
+	for i in range(1,len(all_vts)):
+		points = [(a,vid2ts[a]),(all_vts[i],vid2ts[all_vts[i]])]
+		x_coords, y_coords = zip(*points)
+		A = vstack([x_coords,ones(len(x_coords))]).T
+		m, c = lstsq(A, y_coords)[0]
+		model.append((m,c))
+		a = all_vts[i]
+
+
+	vidcap = cv2.VideoCapture(video_file)
+	fps = vidcap.get(cv2.CAP_PROP_FPS)
+	success, img = vidcap.read()
+
+	last_fixation_color =(0,0,0)
+	all_ts = sorted(gp.keys())
+	count = 0
+	imgs = []       # list of image frames
+	frame2ts = []   # corresponding list of video time stamp values in microseconds
+
+	while success:			
+		#img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+		frame_ts = int((count/fps)*1000000)
+		frame2ts.append(frame_ts)
+
+		less = [a for a in all_vts if a<=frame_ts]
+		idx = len(less)-1
+
+		if idx<len(model):
+			m,c = model[idx]
+		else:
+			m,c = model[len(model)-1]
+		ts = m*frame_ts + c
+		tracker_ts = takeClosest(all_ts,ts)
+		gaze = gp[tracker_ts]
+		gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
+		#h,s,v = img[gaze_coords[1]][gaze_coords[0]]
+		b, g, r = img[gaze_coords[1]][gaze_coords[0]]
+		instant_color = [r/255.0,g/255.0,b/255.0]
+		timeline.append(instant_color)
+
+		last_gaze_pt = gaze_coords
+
+		count += 1
+		success, img = vidcap.read()
+
+	vidcap.release()
+	cv2.destroyAllWindows()
+
+	# find segmentation points on bagfile
+	for topic, msg, t in bag_file.read_messages(topics=['/gaze_tracker','/log_KTframe']):
+		if('vts\"' in msg.data):
+			print t, msg
+	bag_file.close()
+
+
+	return timeline
