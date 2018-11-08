@@ -6,6 +6,8 @@ from sync_hist import get_color_timeline_with_seg
 import matplotlib.pyplot as plt
 import numpy as np
 
+saccades = True
+
 bag_dir = '/home/asaran/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/bags/'
 
 main_dir = '/home/asaran/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/reward/novices/'    #IRL
@@ -84,10 +86,12 @@ for i in range(len(users)):
 
             # remove saccades
             scaled_timeline = range(0,len(timeline)*10,10)
-            for index in sorted(saccade_indices, reverse=True):
-                del scaled_timeline[index]
-                del timeline[index]
-                print('deleted')
+
+            if(not saccades):
+                for index in sorted(saccade_indices, reverse=True):
+                    del scaled_timeline[index]
+                    del timeline[index]
+                    # print('deleted')
 
             if(demo_type=='k' and cond=='p'):
                 plt.figure(1)
