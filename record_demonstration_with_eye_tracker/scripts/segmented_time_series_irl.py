@@ -6,9 +6,9 @@ from sync_hist import get_color_timeline_with_seg
 import matplotlib.pyplot as plt
 import numpy as np
 
-bag_dir = '/media/akanksha/pearl_Gemini/gaze_lfd_user_study/'
+bag_dir = '/home/asaran/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/bags/'
 
-main_dir = '/media/akanksha/pearl_Gemini/IRL/'
+main_dir = '/home/asaran/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/reward/'
 users = os.listdir(main_dir)
 print(users)
 
@@ -34,7 +34,7 @@ condition_names = {
 # naive versus expert users
 
 #for user in users:
-for i in range(5,6):
+for i in range(0,1):
     user = users[i]
     print(user) #KT1,KT2
     dir_name = os.listdir(main_dir+user)
@@ -96,20 +96,32 @@ for i in range(5,6):
         if demo_type=='k':
             video_file = a+seg+'/fullstream.mp4'
             print(video_file)
-            timeline, keyframes, open_keyframes = get_color_timeline_with_seg(data, video_file, bag_file)
+            timeline, keyframes, open_keyframe = get_color_timeline_with_seg(data, video_file, bag_file)
             #fig = plt.figure()
             #for i,c in enumerate(timeline):
             #    print(c[2],c[1],c[0])
             #print(range(0,len(timeline)*10,10))
+            plt.ylim(top=3)  # adjust the top leaving bottom unchanged
+            plt.ylim(bottom=-1)  # adjust the top leaving bottom unchanged
             plt.scatter(range(0,len(timeline)*10,10),np.repeat(1,len(timeline)),color=timeline, s=5)
             title = 'User #'+str(i)+': '+condition_names[exp_id[0]]+', '+condition_names[exp_id[1]]
             plt.title(title)
 
             for xc in keyframes:
-                plt.axvline(x=xc, color='red', linestyle='--')
+                # print(xc)
+                plt.vlines(x=xc*10, color='red', linestyle='--', ymin=0, ymax=2)
+            # scaled_keyframes = [el*10 for el in keyframes]
+            # print(np.repeat(1,len(keyframes)))
+            # plt.scatter(scaled_keyframes,np.repeat(1,len(keyframes)),color='blue', marker="|", s=5)
 
+            # scaled_open_keyframe = [el*10 for el in open_keyframe]
             for xc in open_keyframe:
-                plt.axvline(x=xc, color='yellow', linestyle='--')
+                # print(xc)
+                plt.vlines(x=xc*10, color='green', linestyle='--', ymin=0, ymax=2)
+            # plt.scatter(scaled_open_keyframe,np.repeat(1,len(open_keyframe)),color='green', marker="|", s=5)
+            # plt.plot(scaled_open_keyframe, marker='|',color='green',size=5)
 
-            #plt.show()
+            #plt.scatter
+
+            plt.show()
             #print(hist)

@@ -43,11 +43,12 @@ def takeClosest(myList, myNumber):
 
 	If two numbers are equally close, return the smallest number.
 	"""
+	
 	pos = bisect_left(myList, myNumber)
 	if pos == 0:
-		return myList[0]
+		return myList[0], 0
 	if pos == len(myList):
-		return myList[-1]
+		return myList[-1], len(myList)-1
 	before = myList[pos - 1]
 	after = myList[pos]
 	if after - myNumber < myNumber - before:
@@ -167,7 +168,7 @@ def sync_func(data, video_file):
 			m,c = model[len(model)-1]
 		ts = m*frame_ts + c
 		#print('ts: ',ts)
-		tracker_ts, ~ = takeClosest(all_ts,ts)
+		tracker_ts,_ = takeClosest(all_ts,ts)
 		#print('tracker_ts_pos: ', tracker_ts)
 		gaze = gp[tracker_ts]
 		gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
@@ -279,7 +280,7 @@ def get_color_timeline(data, video_file):
 		else:
 			m,c = model[len(model)-1]
 		ts = m*frame_ts + c
-		tracker_ts, ~ = takeClosest(all_ts,ts)
+		tracker_ts,  _ = takeClosest(all_ts,ts)
 		gaze = gp[tracker_ts]
 		gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
 		#h,s,v = img[gaze_coords[1]][gaze_coords[0]]
@@ -365,7 +366,7 @@ def get_color_timeline_with_seg(data, video_file, bag_file):
 		else:
 			m,c = model[len(model)-1]
 		ts = m*frame_ts + c
-		tracker_ts, ~ = takeClosest(all_ts,ts)
+		tracker_ts, _ = takeClosest(all_ts,ts)
 		videoframe2trackerts.append(tracker_ts)
 
 		gaze = gp[tracker_ts]
@@ -383,6 +384,8 @@ def get_color_timeline_with_seg(data, video_file, bag_file):
 	vidcap.release()
 	cv2.destroyAllWindows()
 
+	#print(videoframe2trackerts)
+
 	# find segmentation points on bagfile
 	keyframes = []
 	open_keyframe = []
@@ -392,7 +395,7 @@ def get_color_timeline_with_seg(data, video_file, bag_file):
 	if bag.get_message_count('/gaze_tracker')!=0:		# gaze_tracker topic was recorded
 		for topic, msg, t in bag.read_messages(topics=['/gaze_tracker','/log_KTframe']):
 			#if('vts' in msg.data):
-			#print t, msg
+			#print topic
 			if (topic=='/log_KTframe'):
 				if("Recorded keyframe" in msg.data):
 					record_k = True
@@ -400,25 +403,31 @@ def get_color_timeline_with_seg(data, video_file, bag_file):
 					record_o = True
 			if (topic == '/gaze_tracker'):
 				if(record_k == True):					
-					#if('gp' in msg.data):					
-					gaze_msg = msg.data
-					s = gaze_msg.find('"ts":')
-					e = gaze_msg.find(',')
-					gaze_ts = gaze_msg[s+5:e]
-					tracker_ts, frame_idx = takeClosest(videoframe2trackerts,gaze_ts)
-					keyframes.append(frame_idx)
-					record_k = False
+					if('gp' in msg.data):					
+						gaze_msg = msg.data
+						s = gaze_msg.find('"ts":')
+						e = gaze_msg.find(',')
+						gaze_ts = gaze_msg[s+5:e]
+						print('gaze_ts:',gaze_ts)
+						tracker_ts, frame_idx = takeClosest(videoframe2trackerts,int(gaze_ts))
+						print('tracker_ts:',tracker_ts)
+						keyframes.append(frame_idx)
+						record_k = False
 				if(record_o == True):
-					gaze_msg = msg.data
-					s = gaze_msg.find('"ts":')
-					e = gaze_msg.find(',')
-					gaze_ts = gaze_msg[s+5:e]
-					tracker_ts, frame_idx = takeClosest(videoframe2trackerts,gaze_ts)
-					open_keyframe.append(frame_idx)
-					record_o = False
+					if('gp' in msg.data):		
+						gaze_msg = msg.data
+						s = gaze_msg.find('"ts":')
+						e = gaze_msg.find(',')
+						gaze_ts = gaze_msg[s+5:e]
+						print('gaze_ts:',gaze_ts)
+						tracker_ts, frame_idx = takeClosest(videoframe2trackerts,int(gaze_ts))
+						print('tracker_ts:',tracker_ts)
+						open_keyframe.append(frame_idx)
+						record_o = False
 
 	print(keyframes)
 	print(open_keyframe)
+	print(len(videoframe2trackerts),videoframe2trackerts[-1])
 	bag.close()
 
 	return timeline, keyframes, open_keyframe
