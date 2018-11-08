@@ -5,6 +5,7 @@ from numpy import ones,vstack
 from numpy.linalg import lstsq
 import numpy as np
 import math
+import rosbag
 
 hist = {
 	0: 0,
@@ -50,9 +51,9 @@ def takeClosest(myList, myNumber):
 	before = myList[pos - 1]
 	after = myList[pos]
 	if after - myNumber < myNumber - before:
-	   return after
+	   return after, pos
 	else:
-	   return before
+	   return before, pos-1
 
 def color_dist(color1, color2):
 	r1,g1,b1 = color1
@@ -166,7 +167,7 @@ def sync_func(data, video_file):
 			m,c = model[len(model)-1]
 		ts = m*frame_ts + c
 		#print('ts: ',ts)
-		tracker_ts = takeClosest(all_ts,ts)
+		tracker_ts, ~ = takeClosest(all_ts,ts)
 		#print('tracker_ts_pos: ', tracker_ts)
 		gaze = gp[tracker_ts]
 		gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
@@ -278,7 +279,7 @@ def get_color_timeline(data, video_file):
 		else:
 			m,c = model[len(model)-1]
 		ts = m*frame_ts + c
-		tracker_ts = takeClosest(all_ts,ts)
+		tracker_ts, ~ = takeClosest(all_ts,ts)
 		gaze = gp[tracker_ts]
 		gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
 		#h,s,v = img[gaze_coords[1]][gaze_coords[0]]
@@ -300,7 +301,7 @@ def get_color_timeline(data, video_file):
 
 
 
-def get_color_timeline(data, video_file, bag_file):
+def get_color_timeline_with_seg(data, video_file, bag_file):
 	timeline = []
 	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
 	vid2ts = {}     # dictionary mapping video time to time stamps in json
@@ -342,12 +343,14 @@ def get_color_timeline(data, video_file, bag_file):
 	vidcap = cv2.VideoCapture(video_file)
 	fps = vidcap.get(cv2.CAP_PROP_FPS)
 	success, img = vidcap.read()
+	print('reading video file')
 
 	last_fixation_color =(0,0,0)
 	all_ts = sorted(gp.keys())
 	count = 0
 	imgs = []       # list of image frames
 	frame2ts = []   # corresponding list of video time stamp values in microseconds
+	videoframe2trackerts = []
 
 	while success:			
 		#img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -362,7 +365,9 @@ def get_color_timeline(data, video_file, bag_file):
 		else:
 			m,c = model[len(model)-1]
 		ts = m*frame_ts + c
-		tracker_ts = takeClosest(all_ts,ts)
+		tracker_ts, ~ = takeClosest(all_ts,ts)
+		videoframe2trackerts.append(tracker_ts)
+
 		gaze = gp[tracker_ts]
 		gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
 		#h,s,v = img[gaze_coords[1]][gaze_coords[0]]
@@ -379,10 +384,41 @@ def get_color_timeline(data, video_file, bag_file):
 	cv2.destroyAllWindows()
 
 	# find segmentation points on bagfile
-	for topic, msg, t in bag_file.read_messages(topics=['/gaze_tracker','/log_KTframe']):
-		if('vts\"' in msg.data):
-			print t, msg
-	bag_file.close()
+	keyframes = []
+	open_keyframe = []
+	record_k, record_o = False, False
+	bag = rosbag.Bag(bag_file)
+	print(bag_file)
+	if bag.get_message_count('/gaze_tracker')!=0:		# gaze_tracker topic was recorded
+		for topic, msg, t in bag.read_messages(topics=['/gaze_tracker','/log_KTframe']):
+			#if('vts' in msg.data):
+			#print t, msg
+			if (topic=='/log_KTframe'):
+				if("Recorded keyframe" in msg.data):
+					record_k = True
+				if("Open" in msg.data):
+					record_o = True
+			if (topic == '/gaze_tracker'):
+				if(record_k == True):					
+					#if('gp' in msg.data):					
+					gaze_msg = msg.data
+					s = gaze_msg.find('"ts":')
+					e = gaze_msg.find(',')
+					gaze_ts = gaze_msg[s+5:e]
+					tracker_ts, frame_idx = takeClosest(videoframe2trackerts,gaze_ts)
+					keyframes.append(frame_idx)
+					record_k = False
+				if(record_o == True):
+					gaze_msg = msg.data
+					s = gaze_msg.find('"ts":')
+					e = gaze_msg.find(',')
+					gaze_ts = gaze_msg[s+5:e]
+					tracker_ts, frame_idx = takeClosest(videoframe2trackerts,gaze_ts)
+					open_keyframe.append(frame_idx)
+					record_o = False
 
+	print(keyframes)
+	print(open_keyframe)
+	bag.close()
 
-	return timeline
+	return timeline, keyframes, open_keyframe

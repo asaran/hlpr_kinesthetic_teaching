@@ -2,13 +2,13 @@ import cv2
 import ast 
 import os
 import gzip
-from sync_hist import get_color_timeline
+from sync_hist import get_color_timeline_with_seg
 import matplotlib.pyplot as plt
 import numpy as np
 
-bag_dir = '/media/asaran/pearl_Gemini/gaze_lfd_user_study/'
+bag_dir = '/media/akanksha/pearl_Gemini/gaze_lfd_user_study/'
 
-main_dir = '/media/asaran/pearl_Gemini/IRL/'
+main_dir = '/media/akanksha/pearl_Gemini/IRL/'
 users = os.listdir(main_dir)
 print(users)
 
@@ -34,7 +34,7 @@ condition_names = {
 # naive versus expert users
 
 #for user in users:
-for i in range(0,1):
+for i in range(5,6):
     user = users[i]
     print(user) #KT1,KT2
     dir_name = os.listdir(main_dir+user)
@@ -58,9 +58,11 @@ for i in range(0,1):
 
     bagloc = bag_dir + user + '/bags/'
     bagfiles = os.listdir(bagloc)
+    #print(bagfiles)
     
     # conditions
     for seg in d:
+        bagfile = ''
         print('Segment ', seg)
         #if(int(seg)==3 or int(seg)==4):
         #    continue
@@ -87,18 +89,27 @@ for i in range(0,1):
         for file in bagfiles:
             if (file.endswith("kt-irl-bowl.bag") and demo_type=='k' and cond=='b'):
                 bag_file = bagloc + file
-            else if(file.endswith("kt-irl-plate.bag") and demo_type=='k' and cond=='p'):
+            elif(file.endswith("kt-irl-plate.bag") and demo_type=='k' and cond=='p'):
                 bag_file = bagloc + file
 
         #if(file.endswith(".mp4")):
-        video_file = a+seg+'/fullstream.mp4'
-        timeline = get_color_timeline_with_seg(data, video_file, bag_file)
-        #fig = plt.figure()
-        #for i,c in enumerate(timeline):
-        #    print(c[2],c[1],c[0])
-        #print(range(0,len(timeline)*10,10))
-        plt.scatter(range(0,len(timeline)*10,10),np.repeat(1,len(timeline)),color=timeline, s=5)
-        title = 'User #'+str(i)+': '+condition_names[exp_id[0]]+', '+condition_names[exp_id[1]]
-        plt.title(title)
-        plt.show()
-        #print(hist)
+        if demo_type=='k':
+            video_file = a+seg+'/fullstream.mp4'
+            print(video_file)
+            timeline, keyframes, open_keyframes = get_color_timeline_with_seg(data, video_file, bag_file)
+            #fig = plt.figure()
+            #for i,c in enumerate(timeline):
+            #    print(c[2],c[1],c[0])
+            #print(range(0,len(timeline)*10,10))
+            plt.scatter(range(0,len(timeline)*10,10),np.repeat(1,len(timeline)),color=timeline, s=5)
+            title = 'User #'+str(i)+': '+condition_names[exp_id[0]]+', '+condition_names[exp_id[1]]
+            plt.title(title)
+
+            for xc in keyframes:
+                plt.axvline(x=xc, color='red', linestyle='--')
+
+            for xc in open_keyframe:
+                plt.axvline(x=xc, color='yellow', linestyle='--')
+
+            #plt.show()
+            #print(hist)
