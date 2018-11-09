@@ -14,7 +14,7 @@ users = os.listdir(main_dir)
 print(users)
 
 order = {'KT1':'kvpb','KT2':'kvbp','KT3':'vkpb','KT4':'vkbp','KT5':'kvbp','KT6':'kvpb','KT7':'vkbp','KT8':'vkpb','KT9':'kvpb','KT10':'kvbp',\
-        'KT11':'vkpb','KT12':'vkbp','KT13':'kvbp','KT14':'kvpb','KT15':'vkbp','KT16':'vkpb','KT17':'kvpb','KT18':'vkbp','KT19':'vkpb','KT20':'vkbp'}
+        'KT11':'vkpb','KT12':'vkbp','KT13':'kvbp','KT14':'kvpb','KT15':'vkbp','KT16':'vkpb','KT17':'kvbp','KT18':'vkbp','KT19':'vkpb','KT20':'vkbp'}
 
 hist_kp, hist_kb, hist_vp, hist_vb = {}, {}, {}, {}
 hists = {
@@ -86,7 +86,7 @@ for i in range(0,1):
             # KT segments within each condition experiment 
             # read bagfile, get corresponding gaze video timestamp
             # put a marker in the graph for each KT segment recording
-            timeline, keyframes, open_keyframe = get_color_timeline_with_seg(data, video_file, bag_file)
+            timeline, keyframes, open_keyframe, _ = get_color_timeline_with_seg(data, video_file, bag_file)
 
             plt.ylim(top=3)  # adjust the top leaving bottom unchanged
             plt.ylim(bottom=-1)  # adjust the top leaving bottom unchanged

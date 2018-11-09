@@ -95,7 +95,6 @@ def is_known_color(color):
 
 def sync_func(data, video_file):
 
-
 	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
 	vid2ts = {}     # dictionary mapping video time to time stamps in json
 	right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
@@ -218,7 +217,7 @@ def sync_func(data, video_file):
 	return hist
 
 
-
+# returns a list of rgb color values for gaze point for each video frame
 def get_color_timeline(data, video_file):
 	timeline = []
 	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
@@ -302,8 +301,8 @@ def get_color_timeline(data, video_file):
 
 
 
-
-def get_color_timeline_with_seg(data, video_file, bag_file):
+# returns a rgb color timeline for gaze points along with the frame indices for the recorded keyframes
+def get_color_timeline_with_seg(data, video_file, bag_file, keep_saccades):
 	timeline = []
 	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
 	vid2ts = {}     # dictionary mapping video time to time stamps in json
@@ -387,7 +386,9 @@ def get_color_timeline_with_seg(data, video_file, bag_file):
 	vidcap.release()
 	cv2.destroyAllWindows()
 
-	timeline, saccade_indices = remove_saccades(gaze_pts, timeline, fps)
+	saccade_indices = []
+	if not keep_saccades:
+		timeline, saccade_indices = remove_saccades(gaze_pts, timeline, fps)
 
 	# find segmentation points on bagfile
 	keyframes = []
@@ -446,11 +447,98 @@ def remove_saccades(gaze_pts, color_timeline, fps):
 		g = gaze_pts[i]
 		prev_g = gaze_pts[i-1]
 		s = (math.sqrt(math.pow(g[0]-prev_g[0],2)+math.pow(g[1]-prev_g[1],2)))/dt
-		print(s)
+		# print(s)
 		if s>200:
-			print('*****',s)
+			# print('*****',s)
 			color_timeline[i] = [1.0, 1.0, 1.0]
 			saccade_indices.append(i)
 		# print(s)
 	return color_timeline, saccade_indices
+
+
+def get_cumulative_gaze_dist(data, video_file):
+	vid2ts = {}     # dictionary mapping video time to time stamps in json
+	right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
+
+	for d in data:
+		if 'vts' in d and d['s']==0:
+			if d['vts'] == 0:
+				vid2ts[d['vts']] = d['ts']
+			else:
+				#vid_time = d['ts'] - d['vts']
+				vid2ts[d['vts']] = d['ts']
+
+		# TODO: if multiple detections for same time stamp?
+		if 'pd' in d and d['s']==0 and d['eye']=='right':
+			right_eye_pd[d['ts']] = d['pd']
+		if 'pd' in d and d['s']==0 and d['eye']=='left':
+			left_eye_pd[d['ts']] = d['pd']
+
+		if 'gp' in d and d['s']==0 :
+			gp[d['ts']] = d['gp']   #list of 2 coordinates
+	print('read json')
+
+	# map vts to ts
+	all_vts = sorted(vid2ts.keys())
+	a = all_vts[0]
+	model = []
+	for i in range(1,len(all_vts)):
+		points = [(a,vid2ts[a]),(all_vts[i],vid2ts[all_vts[i]])]
+		x_coords, y_coords = zip(*points)
+		A = vstack([x_coords,ones(len(x_coords))]).T
+		m, c = lstsq(A, y_coords)[0]
+		model.append((m,c))
+		a = all_vts[i]
+
+
+	vidcap = cv2.VideoCapture(video_file)
+	fps = vidcap.get(cv2.CAP_PROP_FPS)
+	success, img = vidcap.read()
+	print('reading video file')
+
+	last_fixation_color =(0,0,0)
+	all_ts = sorted(gp.keys())
+	count = 0
+	imgs = []       # list of image frames
+	frame2ts = []   # corresponding list of video time stamp values in microseconds
+	gaze_pts = []
+
+	current_dist = 0
+	cumulative_dist = [0]
+	tracker_ts, _ = takeClosest(all_ts,all_vts[0])
+	gx_p, gy_p = gp[tracker_ts]
+
+	while success:	
+		# print('reading frame %d', count)		
+		#img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+		frame_ts = int((count/fps)*1000000)
+		frame2ts.append(frame_ts)
+
+		less = [a for a in all_vts if a<=frame_ts]
+		idx = len(less)-1
+
+		if idx<len(model):
+			m,c = model[idx]
+		else:
+			m,c = model[len(model)-1]
+		ts = m*frame_ts + c
+		tracker_ts, _ = takeClosest(all_ts,ts)
+
+		gaze = gp[tracker_ts]
+		gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
+		gaze_pts.append(gaze_coords)
+
+		gx, gy = gaze_coords
+		d = math.sqrt(math.pow(gx-gx_p,2)+math.pow(gy-gy_p,2))
+		current_dist = current_dist + d
+		cumulative_dist.append(current_dist)
+		gx_p, gy_p = gx, gy
+		
+		count += 1
+		success, img = vidcap.read()
+
+	vidcap.release()
+	cv2.destroyAllWindows()
+
+	return cumulative_dist
 
