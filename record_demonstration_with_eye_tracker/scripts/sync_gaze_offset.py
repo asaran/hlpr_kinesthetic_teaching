@@ -5,7 +5,7 @@ import ast
 
 
 
-with open ("/media/asaran/pearl_Gemini/IRL/KT2/rjt7rgw/segments/3/livedata.json", "r") as myfile:
+with open ("../data_old/livedata.json", "r") as myfile:
 	data=myfile.readlines()
 
 for r in range(len(data)):
@@ -69,7 +69,7 @@ def takeClosest(myList, myNumber):
 	   return before
 
 
-vidcap = cv2.VideoCapture('/media/asaran/pearl_Gemini/IRL/KT2/rjt7rgw/segments/3/fullstream.mp4')
+vidcap = cv2.VideoCapture('../data_old/fullstream.mp4')
 fps = vidcap.get(cv2.CAP_PROP_FPS)
 print fps 	#25 fps
 success, img = vidcap.read()
@@ -103,7 +103,7 @@ while success:
 	gaze = gp[tracker_ts]
 	cv2.circle(img,(int(gaze[0]*1920), int(gaze[1]*1080)), 5, (0,255,0), -1)
 	video.write(img)
-	cv2.imwrite('imgs/'+str(count)+'.png', img)
+	# cv2.imwrite('imgs/'+str(count)+'.png', img)
 	count += 1
 	success, img = vidcap.read()
 

@@ -1,7 +1,9 @@
+# DO NOT USE - SLOWS DOWN ALIENWARE
+
 import cv2
 import ast 
 
-vidcap = cv2.VideoCapture('../data/fullstream.mp4')
+vidcap = cv2.VideoCapture('../data_old/fullstream.mp4')
 fps = vidcap.get(cv2.CAP_PROP_FPS)
 print fps 
 success,image = vidcap.read()
@@ -12,13 +14,13 @@ frame2ts = []	# corresponding list of video time stamp values in microseconds
 success = True
 while success:
   #cv2.imwrite("data/imgs/%d.jpg" % count, image)     # save frame as JPEG file   
-  imgs.append(image)   
+  imgs.append(image)       # ************HOGS ALL THE MEMORY******************
   success,image = vidcap.read()
   frame2ts.append(int((count/fps)*1000000))
   #print('Read a new frame: ', success)
   count += 1
 
-with open ("../data/livedata.json", "r") as myfile:
+with open ("../data_old/livedata.json", "r") as myfile:
     data=myfile.readlines()
 
 for r in range(len(data)):

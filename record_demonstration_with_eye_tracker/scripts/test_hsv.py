@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 while(1):
-	frame = cv2.imread('imgs/642.png')
+	frame = cv2.imread('../data/imgs/642.jpg')
 	# Convert BGR to HSV
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 	# define range of blue color in HSV
