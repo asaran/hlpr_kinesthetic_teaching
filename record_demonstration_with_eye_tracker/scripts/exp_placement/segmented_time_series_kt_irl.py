@@ -2,7 +2,7 @@ import cv2
 import ast 
 import os
 import gzip
-from sync_hist import get_color_timeline_with_seg
+from utils import get_color_timeline_with_seg
 import matplotlib.pyplot as plt
 import numpy as np
 

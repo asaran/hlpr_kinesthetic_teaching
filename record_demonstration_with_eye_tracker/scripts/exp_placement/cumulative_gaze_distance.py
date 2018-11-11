@@ -3,7 +3,7 @@ import numpy as np
 import ast 
 import os
 import gzip
-from sync_hist import get_cumulative_gaze_dist
+from utils import get_cumulative_gaze_dist
 
 # iterate through users for placement task
 # find the cumulative distance traveled by gaze points over frame number on the x-axis
