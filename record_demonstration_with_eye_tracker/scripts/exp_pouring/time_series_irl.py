@@ -2,8 +2,8 @@ import cv2
 import ast 
 import os
 import gzip
-from sync_hist import get_color_timeline_with_seg
-from sync_hist import get_color_timeline
+from utils import get_color_timeline_with_seg
+from utils import get_color_timeline
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
