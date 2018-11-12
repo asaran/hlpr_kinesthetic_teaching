@@ -9,7 +9,7 @@ from utils import get_cumulative_gaze_dist
 # find the cumulative distance traveled by gaze points over frame number on the x-axis
 # plot cumulative distance for each user on the same plot
 
-main_dir = '/home/asaran/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/reward/all_users/'    #IRL
+main_dir = '../../data/pouring/all_users/'    #IRL
 users = os.listdir(main_dir)
 print(users)
 
@@ -17,24 +17,14 @@ colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'brown', \
           'darkgreen', 'plum', 'grey', 'skyblue', 'khaki', 'darkblue', 'teal', 'orange', \
           'lightpink', 'sandybrown']
 
-order = {'KT1':'kvpb','KT2':'kvbp','KT3':'vkpb','KT4':'vkbp','KT5':'kvbp','KT6':'kvpb','KT7':'vkbp','KT8':'vkpb','KT9':'kvpb','KT10':'kvbp',\
-        'KT11':'vkpb','KT12':'vkbp','KT13':'kvbp','KT14':'kvpb','KT15':'vkbp','KT16':'vkpb','KT17':'kvpb','KT18':'vkbp','KT19':'vkpb','KT20':'vkbp'}
+order = {'KT1':'kv','KT2':'kv','KT3':'vk','KT4':'vk','KT5':'kv','KT6':'kv','KT7':'vk','KT8':'vk','KT9':'kv','KT10':'kv',\
+        'KT11':'vk','KT12':'vk','KT13':'kv','KT14':'kv','KT15':'vk','KT16':'vk','KT17':'kv','KT18':'vk','KT19':'vk','KT20':'vk'}
 
-hist_kp, hist_kb, hist_vp, hist_vb = {}, {}, {}, {}
+hist_k, hist_v = {}, {}
 hists = {
-    'kp': hist_kp,
-    'kb': hist_kb,
-    'vp': hist_vp,
-    'vb': hist_vb
+    'k': hist_k,
+    'v': hist_v
 }
-
-condition_names = {
-    'k': 'KT demo',
-    'v': 'Video demo',
-    'p': 'plate target',
-    'b': 'bowl target'
-}
-
 
 plt.figure(1, figsize=(20,5))
 plt.figure(2, figsize=(20,5))
@@ -49,17 +39,18 @@ for i in range(len(users)):
     d = os.listdir(a)
 
     #IRL segment
-    if(len(d))>4:
-        print('More than 4 segments!! Clean up the data...')
+    if(len(d))>6:
+        print('More than 6 segments!! Clean up the data...')
         exit()
 
     exps = order[user]
 
     for seg in d:
         print('Segment ', seg)
-        demo_type = exps[0] if int(seg)<=2 else exps[1]
-        cond = exps[2] if (int(seg)==1 or int(seg)==3) else exps[3]
-        exp_id = demo_type + cond
+        demo_type = exps[0] if int(seg)<=3 else exps[1]
+
+        # if(int(seg)!=1 and int(seg)!=4):
+        #     continue
 
         data = []
         files = os.listdir(a+seg)

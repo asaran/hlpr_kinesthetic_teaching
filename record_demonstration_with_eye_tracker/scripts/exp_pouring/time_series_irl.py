@@ -11,7 +11,7 @@ from collections import OrderedDict
 keep_saccades = True
 
 bag_dir = '/home/asaran/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/bags/'
-
+video_kf_fle = 'video_kf.txt'
 # experts - user 1, 2, 4, 5, 6, 8, 12, 13, 18, 19 
 # novices - user 3, 7, 9, 10, 11, 14, 15, 16, 17, 20
 main_dir = '/home/asaran/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/pouring/experts/'    #IRL
@@ -100,6 +100,7 @@ for i in range(len(users)):
 
         if(demo_type=='v'):
             timeline, saccade_indices = get_color_timeline(data, video_file, keep_saccades)
+            keyframes =  get_video_keyframes(video_file, video_kf_file)
 
         # remove saccades
         scale = 10

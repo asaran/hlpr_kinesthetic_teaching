@@ -3,5 +3,6 @@
 .vscode/
 record_demonstration_with_eye_tracker/data/*
 record_demonstration_with_eye_tracker/data_old/*
+record_demonstration_with_eye_tracker/scripts/exp_pouring/vis/*
 record_demonstration_with_eye_tracker/scripts/imgs/*
 *.avi

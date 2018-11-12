@@ -95,7 +95,7 @@ def is_known_color(color):
 
 def sync_func(data, video_file):
 
-	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
+	# fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
 	vid2ts = {}     # dictionary mapping video time to time stamps in json
 	right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
 
@@ -217,10 +217,69 @@ def sync_func(data, video_file):
 	return hist
 
 
+
+# returns a list of frame indices corresponding to the annotated KF for video demonstrations
+def get_video_keyframes(video_file, video_kf_file):
+	vidcap = cv2.VideoCapture(video_file)
+	fps = vidcap.get(cv2.CAP_PROP_FPS)
+	length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+	print('read video file')
+
+	vidcap.release()
+	cv2.destroyAllWindows()
+
+	# read video files
+	with open(fname) as f:
+	    content = f.readlines()
+	# you may also want to remove whitespace characters like `\n` at the end of each line
+	content = [x.strip() for x in content] 
+	print(content)
+	print('read text file')
+
+	# find segmentation points in video file
+	keyframes = {
+		'Start': [],
+		'Reaching': [],
+		'Grasping': [],
+		'Close': [],
+		'Open': [],
+		'Transport': [],
+		'Pouring': [],
+		'Return': [],
+		'Release': [],
+		'Stop': []
+	}
+
+	kf_type = {
+		1: 'Start',
+		2: 'Reaching',
+		3: 'Grasping',
+		4: 'Transport',
+		5: 'Pouring',
+		6: 'Return',
+		7: 'Release',
+		8: 'Reaching',
+		9: 'Grasping',
+		10: 'Transport',
+		11: 'Pouring',
+		12: 'Return',
+		13: 'Release',
+		14: 'Stop'
+	}
+
+	for kf in content:					
+		data = content.split(' ')
+		for i in range(1,len(data)):
+			d = data[i]
+			keyframes[kf_type].append(frame_idx)
+
+	return keyframes
+
+
 # returns a list of rgb color values for gaze point for each video frame
 def get_color_timeline(data, video_file, keep_saccades):
 	timeline = []
-	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
+	# fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
 	vid2ts = {}     # dictionary mapping video time to time stamps in json
 	right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
 
@@ -312,7 +371,7 @@ def get_color_timeline(data, video_file, keep_saccades):
 # returns a rgb color timeline for gaze points along with the frame indices for the recorded keyframes
 def get_color_timeline_with_seg(data, video_file, bag_file, keep_saccades):
 	timeline = []
-	fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
+	# fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
 	vid2ts = {}     # dictionary mapping video time to time stamps in json
 	right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
 
@@ -461,7 +520,6 @@ def get_color_timeline_with_seg(data, video_file, bag_file, keep_saccades):
 	return timeline, keyframes, saccade_indices
 
 
-
 def remove_saccades(gaze_pts, color_timeline, fps):
 	speed = []
 	saccade_indices = []
@@ -599,3 +657,5 @@ def get_color_name(hsv):
 					value = color_val[n]
 
 	return color, value
+
+
