@@ -88,6 +88,8 @@ all_ts = sorted(gp.keys())
 count = 0
 imgs = []       # list of image frames
 frame2ts = []   # corresponding list of video time stamp values in microseconds
+window = []
+win_size = 3
 while success:	
 	# print(count)
 	frame_ts = int((count/fps)*1000000)
@@ -113,10 +115,21 @@ while success:
 	# color_name, color_value = get_color_name(hsv)
 	radius = 100
 	color_name, color_value = get_color_name_from_hist(gaze_coords, img_hsv, radius)
-	
+	window.append(color_name)
+	if(len(window)>win_size):
+		del window[0]
+
 	font = cv2.FONT_HERSHEY_SIMPLEX
 	if(count in saccade_indices):
-		cv2.putText(img, 'SACCADE!!', (800, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
+		cv2.putText(img, 'SACCADE!!', (800, 250), font, 1.8, (192,192,192), 5, cv2.LINE_AA)
+	else:
+		# might be a fixation
+		fixation = True
+		for det_c in window:
+			if det_c!=color_name:
+				fixation=False
+		if(fixation):
+			cv2.putText(img, '*****FIXATION****', (1430, 500), font, 1.8, color_value, 5, cv2.LINE_AA)
 
 	if(color_name!=''):
 	# 	print(color_name)
@@ -126,7 +139,7 @@ while success:
 	cv2.putText(img, str(hsv), (230, 250), font, 1.8, (255, 255, 0), 5, cv2.LINE_AA)
 
 	cv2.circle(img,gaze_coords, 25, (255,255,0), 3)
-	cv2.circle(img,gaze_coords, radius, (0,255,255), 3)
+	cv2.circle(img,gaze_coords, radius, (0,165,255), 3)
 	video.write(img)
 	# cv2.imwrite('../../data/imgs_pouring/'+str(count)+'.png', img)
 	# cv2.imwrite('video_imgs/'+str(count)+'.png', img)

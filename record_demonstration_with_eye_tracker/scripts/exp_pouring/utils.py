@@ -531,7 +531,7 @@ def find_saccades(gaze_pts, fps):
 		prev_g = gaze_pts[i-1]
 		s = (math.sqrt(math.pow(g[0]-prev_g[0],2)+math.pow(g[1]-prev_g[1],2)))/dt
 		# print(s)
-		if s>500:
+		if s>800:
 			# print('*****',s)
 			saccade_indices.append(i)
 		# print(s)
@@ -680,7 +680,6 @@ def get_color_name(hsv):
 def get_color_name_from_hist(gaze_coords, img_hsv, radius):
 	color_hist ={
 		'blue': 0,
-		'white': 0,
 		'yellow': 0,
 		'red': 0,
 		'green': 0,
@@ -695,7 +694,7 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
 		'green': (0,255,0),
 		'yellow': (0,255,255),
 		'blue': (255,0,0),
-		'other': (128,128,128)
+		'other': (192,192,192)
 	}
 
 	x, y = gaze_coords
@@ -720,6 +719,8 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
 	max_val = 0
 	max_color = ''
 	for key,val in color_hist.items():
+		# if(key=='other'):
+		# 	continue
 		if val>max_val:
 			max_val = val
 			max_color = key
