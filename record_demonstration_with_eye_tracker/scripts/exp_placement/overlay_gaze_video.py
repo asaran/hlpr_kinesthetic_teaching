@@ -4,7 +4,7 @@ import cv2
 import ast 
 from utils import get_color_name
 
-my_dir = '/home/akanksha/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/pouring/experts/KT6/5fyyvco/segments/6/'
+my_dir = '/home/akanksha/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/reward/all_users/KT4/4ccis5w/segments/4/'
 with open(my_dir+"livedata.json", "r") as myfile:
 	data=myfile.readlines()
 
@@ -70,7 +70,7 @@ print fps 	#25 fps
 success, img = vidcap.read()
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-video = cv2.VideoWriter('../../data/gaze_pouring_color_filtered_user6_exp6.avi',fourcc,fps,(1920,1080))
+video = cv2.VideoWriter('../../data/gaze_pouring_color_filtered_user4_exp4.avi',fourcc,fps,(1920,1080))
 
 all_ts = sorted(gp.keys())
 count = 0
@@ -101,16 +101,16 @@ while success:
 	color_name, color_value = get_color_name(hsv)
 	
 	# if(color_name!=''):
-	# # 	print(color_name)
-	# 	cv2.putText(img, color_name, (1430, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
+	# 	print(color_name)
+		# cv2.putText(img, color_name, (1430, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
 
-	# # print(hsv)
+	# print(hsv)
 	# cv2.putText(img, str(hsv), (230, 250), font, 1.8, (255, 255, 0), 5, cv2.LINE_AA)
 
 	# cv2.circle(img,gaze_coords, 25, (255,255,0), 3)
 	video.write(img)
 	# cv2.imwrite('../../data/imgs_pouring/'+str(count)+'.png', img)
-	cv2.imwrite('video_imgs/'+str(count)+'.png', img)
+	cv2.imwrite('KT_imgs_2/'+str(count)+'.png', img)
 	count += 1
 	success, img = vidcap.read()
 

@@ -6,3 +6,10 @@ record_demonstration_with_eye_tracker/data_old/*
 record_demonstration_with_eye_tracker/scripts/exp_pouring/vis/*
 record_demonstration_with_eye_tracker/scripts/imgs/*
 *.avi
+
+record_demonstration_with_eye_tracker/scripts/exp_pouring/KT_imgs/*
+record_demonstration_with_eye_tracker/scripts/exp_pouring/video_imgs/*
+record_demonstration_with_eye_tracker/scripts/exp_placement/KT_imgs/*
+record_demonstration_with_eye_tracker/scripts/exp_placement/video_imgs/*
+record_demonstration_with_eye_tracker/scripts/exp_placement/KT_imgs_2/*
+record_demonstration_with_eye_tracker/scripts/exp_placement/video_imgs_2/*

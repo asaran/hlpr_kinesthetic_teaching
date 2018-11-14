@@ -542,3 +542,35 @@ def get_cumulative_gaze_dist(data, video_file):
 
 	return cumulative_dist
 
+def get_color_name(hsv):
+
+	color_ranges = {
+		'red':   [[161,140,70],[181,227,167]],
+		'green': [[36,64,28],[70,155,159]],
+		'yellow': [[0,90,57],[32,155,169]],
+		'blue': [[94,111,34],[118,165,136]],
+		'black': [[0,0,0],[180,255,40]],
+		'white': [[0,0,170],[180,255,255]]
+	}
+
+	color_val = {
+		'black': (0,0,0),
+		'white': (255,255,255),
+		'red': (0,0,255),
+		'green': (0,255,0),
+		'yellow': (0,255,255),
+		'blue': (255,0,0)
+	}
+
+	h,s,v = hsv
+	color = ''
+	value = None
+	for i, (n,r) in enumerate(color_ranges.items()):
+		# print(n, r[0][0], r[1][0])
+		if h>=r[0][0] and h<=r[1][0]:
+			if s>=r[0][1] and s<=r[1][1]:
+				if v>=r[0][2] and v<=r[1][2]:
+					color = n 
+					value = color_val[n]
+
+	return color, value

@@ -271,6 +271,7 @@ def get_video_keyframes(video_file, video_kf_file):
 		data = content.split(' ')
 		for i in range(1,len(data)):
 			d = data[i]
+			# frame_idx = 
 			keyframes[kf_type].append(frame_idx)
 
 	return keyframes
