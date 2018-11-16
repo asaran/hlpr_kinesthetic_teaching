@@ -295,7 +295,7 @@ if args.eid == '2b':
                 bowl_fixations.append(fixations)
 
 
-    with open('2b_video_plate_experts.csv', mode='w') as plate_file:
+    with open('2b_KT_plate_experts.csv', mode='w') as plate_file:
         plate_writer = csv.writer(plate_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         color_names = plate_fixations[0].keys()
         plate_writer.writerow(color_names)
@@ -304,7 +304,7 @@ if args.eid == '2b':
             value_list = [fix[i] for i in color_names]
             plate_writer.writerow(value_list)
 
-    with open('2b_video_bowl_experts.csv', mode='w') as bowl_file:
+    with open('2b_KT_bowl_experts.csv', mode='w') as bowl_file:
         bowl_writer = csv.writer(bowl_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         color_names = bowl_fixations[0].keys()
         bowl_writer.writerow(color_names)
@@ -371,7 +371,7 @@ if args.eid == '2c':
                 bowl_fixations.append(fixations)
 
 
-    with open('2c_video_plate_novice.csv', mode='w') as plate_file:
+    with open('2c_KT_plate_novice.csv', mode='w') as plate_file:
         plate_writer = csv.writer(plate_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         color_names = plate_fixations[0].keys()
         plate_writer.writerow(color_names)
@@ -380,7 +380,7 @@ if args.eid == '2c':
             value_list = [fix[i] for i in color_names]
             plate_writer.writerow(value_list)
 
-    with open('2c_video_bowl_novice.csv', mode='w') as bowl_file:
+    with open('2c_KT_bowl_novice.csv', mode='w') as bowl_file:
         bowl_writer = csv.writer(bowl_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         color_names = bowl_fixations[0].keys()
         bowl_writer.writerow(color_names)
