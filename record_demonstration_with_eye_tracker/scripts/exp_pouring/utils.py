@@ -336,6 +336,76 @@ def get_video_keyframes(user_id, video_file, video_kf_file):
     return keyframes
 
 
+def get_video_keyframe_labels(user_id, video_file, video_kf_file):
+    vidcap = cv2.VideoCapture(video_file)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+    print('read video file')
+
+    vidcap.release()
+    cv2.destroyAllWindows()
+
+    # read video files
+    with open(video_kf_file) as f:
+        content = f.readlines()
+    # you may also want to remove whitespace characters like `\n` at the end of each line
+    content = [x.strip() for x in content] 
+    # print(content)
+    print('read text file')
+
+    all_keyframe_indices = []
+    keyframes = {}
+    # find segmentation points in video file
+    # keyframes = {
+    #     'Start': [],
+    #     'Reaching': [],
+    #     'Grasping': [],
+    #     'Close': [],
+    #     'Open': [],
+    #     'Transport': [],
+    #     'Pouring': [],
+    #     'Return': [],
+    #     'Release': [],
+    #     'Stop': []
+    # }
+
+    kf_type = {
+        1: 'Start',
+        2: 'Reaching',
+        3: 'Grasping',
+        4: 'Transport',
+        5: 'Pouring',
+        6: 'Return',
+        7: 'Release',
+        8: 'Reaching',
+        9: 'Grasping',
+        10: 'Transport',
+        11: 'Pouring',
+        12: 'Return',
+        13: 'Release',
+        14: 'Stop'
+    }
+
+    for kf in content:                  
+        data = kf.split(' ')
+        # print(data)
+        user = data[0]
+        if(user == user_id):
+            for i in range(1,len(data)):
+                d = data[i]
+                # print(d)
+                if(d=='end'):
+                    frame_idx = length
+                else:
+                    kf_time = float(d)
+                    frame_idx = math.floor(kf_time*fps)
+                k = kf_type[i]
+                keyframes[frame_idx] = k
+
+    print('Found start and stop keyframe indices')
+    return keyframes, all_keyframe_indices
+
+
 # returns a list of rgb color values for gaze point for each video frame
 def get_color_timeline(data, video_file, keep_saccades):
     timeline = []
@@ -585,6 +655,96 @@ def get_color_timeline_with_seg(data, video_file, bag_file, keep_saccades):
     return timeline, keyframes, saccade_indices
 
 
+def get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file):
+    vidcap = cv2.VideoCapture(video_file)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    success, img = vidcap.read()
+    print('reading video file')
+
+    keyframes = {}
+
+    last_fixation_color =(0,0,0)
+    all_ts = sorted(gp.keys())
+    count = 0
+    imgs = []       # list of image frames
+    frame2ts = []   # corresponding list of video time stamp values in microseconds
+    videoframe2trackerts = []
+    gaze_pts = []
+
+    while success:          
+        #img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        frame_ts = int((count/fps)*1000000)
+        frame2ts.append(frame_ts)
+
+        less = [a for a in all_vts if a<=frame_ts]
+        idx = len(less)-1
+
+        if idx<len(model):
+            m,c = model[idx]
+        else:
+            m,c = model[len(model)-1]
+        ts = m*frame_ts + c
+        tracker_ts, _ = takeClosest(all_ts,ts)
+        videoframe2trackerts.append(tracker_ts)
+
+        count += 1
+        success, img = vidcap.read()
+
+    vidcap.release()
+    cv2.destroyAllWindows()
+
+    # find segmentation points on bagfile
+    all_keyframe_indices = []
+    record_k = False
+    bag = rosbag.Bag(bag_file)
+    print(bag_file)
+    if bag.get_message_count('/gaze_tracker')!=0:       # gaze_tracker topic was recorded
+        for topic, msg, t in bag.read_messages(topics=['/gaze_tracker','/log_KTframe']):
+            #if('vts' in msg.data):
+            #print topic
+            if (topic=='/log_KTframe'):
+                # print(msg.data)
+                if("Recorded keyframe" in msg.data):
+                    record_k = True
+                    if 'Reaching' in msg.data:
+                        kf_type = 'Reaching'
+                    elif 'Grasping' in msg.data:
+                        kf_type = 'Grasping'
+                    elif 'Transport' in msg.data:
+                        kf_type = 'Transport'                       
+                    elif 'Pouring' in msg.data:
+                        kf_type = 'Pouring'
+                    elif 'Return' in msg.data:
+                        kf_type = 'Return'
+                    elif 'Release' in msg.data:
+                        kf_type = 'Release'
+                    else:
+                        kf_type = 'Other'
+
+                if("Open" in msg.data):
+                    record_k = True
+                    kf_type = 'Open'
+                if("Close" in msg.data):
+                    record_k = True
+                    kf_type = 'Close'
+
+            if (topic == '/gaze_tracker'):
+                if(record_k == True):                   
+                    if('gp' in msg.data):                   
+                        gaze_msg = msg.data
+                        s = gaze_msg.find('"ts":')
+                        e = gaze_msg.find(',')
+                        gaze_ts = gaze_msg[s+5:e]
+                        tracker_ts, frame_idx = takeClosest(videoframe2trackerts,int(gaze_ts))
+                        all_keyframe_indices.append(frame_idx)
+                        keyframes[frame_idx] = kf_type
+                        record_k = False
+
+
+    bag.close()
+    return keyframes, all_keyframe_indices
+
+
 def get_kt_keyframes(all_vts, model, gp, video_file, bag_file):
     vidcap = cv2.VideoCapture(video_file)
     fps = vidcap.get(cv2.CAP_PROP_FPS)
@@ -665,13 +825,13 @@ def get_kt_keyframes(all_vts, model, gp, video_file, bag_file):
                         gaze_ts = gaze_msg[s+5:e]
                         tracker_ts, frame_idx = takeClosest(videoframe2trackerts,int(gaze_ts))
                         all_keyframe_indices.append(frame_idx)
+
                         record_k = False
 
-    # print(keyframes)
-    # print(open_keyframe)
-    # print(len(videoframe2trackerts),videoframe2trackerts[-1])
+
     bag.close()
     return all_keyframe_indices
+
 
 
 def find_saccades(gaze_pts, fps):
@@ -827,6 +987,15 @@ def get_color_name(hsv):
                     color = n 
                     value = color_val[n]
 
+    pasta_color_range = [[0,30,0],[40,130,150]]
+    p = pasta_color_range
+    if color=='':
+        if h>=p[0][0] and h<=p[1][0]:
+            if s>=p[0][1] and s<=p[1][1]:
+                if v>=p[0][2] and v<=p[1][2]:
+                    color = 'pasta'
+                    value = color_val['yellow']
+
     return color, value
 
 
@@ -837,6 +1006,7 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
         'red': 0,
         'green': 0,
         'black': 0,
+        'pasta': 0,
         'other': 0
     }
 
@@ -845,6 +1015,7 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
         'red': (0,0,255),
         'green': (0,255,0),
         'yellow': (0,255,255),
+        'pasta': (0,255,255),
         'blue': (255,0,0),
         'other': (192,192,192)
     }
@@ -872,21 +1043,25 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
     max_color = ''
     for key,val in color_hist.items():
         # print(val)
-        if(key=='other'):
-            all_values = color_hist.values()
-            # print(all_values)
-            other_values = all_values
-            other_values.remove(val)
-            # print(other_values)
-            ignore_other_color = False
-            for l in other_values:
-                if l>50:
-                    ignore_other_color = True
-            if ignore_other_color:
-                continue
         if val>max_val:
             max_val = val
             max_color = key
+
+
+    # do not assign other color if relevant colors are present
+    second_max_val = 0
+    second_max_color = ''
+    if max_color=='other':
+        for key,val in color_hist.items():
+            if key=='other':
+                continue
+            else:
+                if val>second_max_val:
+                    second_max_val = val
+                    second_max_color = key
+        if second_max_val>5:
+            max_color = second_max_color
+            max_val = second_max_val
 
     value = color_val[max_color]
     return max_color, value
@@ -1010,7 +1185,8 @@ def filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices,
         'blue': 0,
         'green': 0,
         'black': 0,
-        'other': 0
+        'other': 0,
+        'pasta': 0
     }
 
     fixation_count = KT_fixation_count

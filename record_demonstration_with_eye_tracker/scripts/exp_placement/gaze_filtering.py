@@ -5,7 +5,7 @@ import ast
 import gzip
 from utils import get_hsv_color_timeline, get_color_name_from_hist
 
-my_dir = '../../data/pouring/experts/KT19/he6ao2m/segments/1/'
+my_dir = '../../data/reward/all_users/KT8/3pe5hvp/segments/2/'
 # with open(my_dir+"livedata.json", "r") as myfile:
 # 	data=myfile.readlines()
 
@@ -82,7 +82,7 @@ print fps 	#25 fps
 success, img = vidcap.read()
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-video = cv2.VideoWriter('../../data/gaze_filtering_demo.avi',fourcc,fps,(1920,1080))
+video = cv2.VideoWriter('../../data/gaze_filtering_placement_demo.avi',fourcc,fps,(1920,1080))
 
 all_ts = sorted(gp.keys())
 count = 0
