@@ -44,7 +44,7 @@ if args.eid == '1a':
     print('Percentage of time during entire demo - spent on objects or other parts of workspace')
     print('Measure differences between novice and experts - video demos')
 
-    all_expert_fix, all_novice_fix = [], []
+    all_expert_fix, all_novice_fix = {}, {}
     for u, user_dir, all_fix in zip([experts,novices],[expert_dir,novice_dir],[all_expert_fix,all_novice_fix]):
 
         # Get all expert users
@@ -76,7 +76,8 @@ if args.eid == '1a':
                 # print(keyframe_indices)
                 start_idx, end_idx = keyframe_indices['Start'][0], keyframe_indices['Stop'][0]
                 fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
-                all_fix.append(fixations)
+                # all_fix.append(fixations)
+                all_fix[user[2]] = fixations
             # One plot showing both novice and expert numbers for objects, other
 
     # print(all_expert_fix)
@@ -84,25 +85,29 @@ if args.eid == '1a':
     with open('1a_video_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         color_names = all_expert_fix[0].keys()
-        expert_writer.writerow(color_names)
+        u_color_names = ['User ID'] + color_names
+        expert_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for expert_fix in all_expert_fix:
+        for us, expert_fix in all_expert_fix.items():
             value_list = [expert_fix[i] for i in color_names]
+            value_list = [us] + value_list
             expert_writer.writerow(value_list)
 
     with open('1a_video_novice.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         color_names = all_novice_fix[0].keys()
-        novice_writer.writerow(color_names)
+        u_color_names = ['User ID'] + color_names
+        novice_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for novice_fix in all_novice_fix:
+        for us, novice_fix in all_novice_fix.items():
             value_list = [novice_fix[i] for i in color_names]
+            value_list = [us] + value_list
             novice_writer.writerow(value_list)
 
 if args.eid == '1b':
     print('Percentage of time during entire demo - spent on objects, gripper or other parts of workspace')
     print('Measure differences between novice and experts - KT demos')
-    all_expert_fix, all_novice_fix = [], []
+    all_expert_fix, all_novice_fix = {}, {}
     for u, user_dir, all_fix in zip([experts,novices],[expert_dir,novice_dir],[all_expert_fix,all_novice_fix]):
 
         # Get all expert users
@@ -143,38 +148,43 @@ if args.eid == '1b':
                 data, gp, model, all_vts = read_json(a+seg)
                 video_file = a+seg+'/fullstream.mp4'
                 keyframes = get_kt_keyframes(all_vts, model, gp, video_file, bag_file)
-                print(keyframes)
+                # print(keyframes)
                 start_idx, end_idx = keyframes[0], keyframes[-1]
                 hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
 
                 fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx,end_idx)
-                all_fix.append(fixations)
+                # all_fix.append(fixations)
+                all_fix[user[2]] = fixations
                 # One plot showing both novice and expert numbers for objects, other
 
     # print(all_fix)
     with open('1b_kt_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         color_names = all_expert_fix[0].keys()
-        expert_writer.writerow(color_names)
+        u_color_names = ['User ID'] + color_names
+        expert_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for expert_fix in all_expert_fix:
+        for us, expert_fix in all_expert_fix.items():
             value_list = [expert_fix[i] for i in color_names]
+            value_list = [us] + value_list
             expert_writer.writerow(value_list)
 
     with open('1b_kt_novice.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         color_names = all_novice_fix[0].keys()
-        novice_writer.writerow(color_names)
+        u_color_names = ['User ID'] + color_names
+        novice_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for novice_fix in all_novice_fix:
+        for us, novice_fix in all_novice_fix.items():
             value_list = [novice_fix[i] for i in color_names]
+            value_list = [us] + value_list
             novice_writer.writerow(value_list)
 
 if args.eid == '2a':
     print('Perecentage accuarcy to predict reference frame per keyframe')
     print('Video versus KT demos (expert users)')
 
-    kt_target_acc, video_target_acc = [], []
+    kt_target_acc, video_target_acc = {}, {}
 
     target_objects = {
         'Reaching': [['green', 'pasta'], ['yellow', 'pasta']],
@@ -243,7 +253,7 @@ if args.eid == '2a':
             hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
 
             if(demo_type=='k'):
-                start_idx = 0
+                start_idx = 0   
                 for fid in keyframe_indices:
                     kf_type = keyframes[fid]
                     if(kf_type=='Open'):
@@ -276,13 +286,16 @@ if args.eid == '2a':
                     # all_fix.append(fixations)
                     # One plot showing both novice and expert numbers for objects, other
                     start_idx = end_idx
-                kt_target_acc.append(target_acc)
+                kt_target_acc[user[2]] = target_acc
 
-            if(demo_type == 'v'):
+            if(demo_type=='v'):
                 # start_idx = 0
+                # TODO: the start frame is not being taken care of
+                print(keyframe_indices) # TODO: keyframe indices is empty
                 for j in range(len(keyframe_indices)-1):
                     fid = keyframe_indices[j]
                     kf_type = keyframes[fid]
+                    print(kf_type)
                     if(kf_type=='Pouring'):
                         first_grasp = True
                     if kf_type=='Reaching' and first_grasp:
@@ -307,26 +320,31 @@ if args.eid == '2a':
                     # all_fix.append(fixations)
                     # One plot showing both novice and expert numbers for objects, other
                     # start_idx = end_idx
-
-                video_target_acc.append(target_acc)
+                # print(experts[0][2])
+                video_target_acc[user[2]] = target_acc
 
     # print(all_fix)
     with open('2a_kt_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = kt_target_acc[0].keys()
-        expert_writer.writerow(kf_names)
+        kf_names = kt_target_acc[experts[0][2]].keys()
+        u_kf_names = ['User ID'] + kf_names
+        expert_writer.writerow(u_kf_names)
+        
         # no_of_colors = length(color_names)
-        for acc in kt_target_acc:
+        for u,acc in kt_target_acc.items():
             value_list = [acc[i][0]*100.0/acc[i][1]  if acc[i][1]!=0 else -1  for i in kf_names]
+            value_list = [u] + value_list
             expert_writer.writerow(value_list)
 
     with open('2a_video_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = video_target_acc[0].keys()
-        expert_writer.writerow(kf_names)
+        kf_names = video_target_acc[experts[0][2]].keys()
+        u_kf_names = ['User ID'] + kf_names
+        expert_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
-        for acc in video_target_acc:
+        for u,acc in video_target_acc.items():
             value_list = [acc[i][0]*100.0/acc[i][1] if acc[i][1]!=0 else -1 for i in kf_names]
+            value_list = [u] + value_list
             expert_writer.writerow(value_list)
     
 
@@ -334,7 +352,7 @@ if args.eid == '2b':
     print('Perecentage accuarcy to predict reference frame per keyframe')
     print('Video versus KT demos (novice users)')
     
-    kt_target_acc, video_target_acc = [], []
+    kt_target_acc, video_target_acc = {}, {}
 
     target_objects = {
         'Reaching': [['green', 'pasta'], ['yellow', 'pasta']],
@@ -435,7 +453,8 @@ if args.eid == '2b':
                     # all_fix.append(fixations)
                     # One plot showing both novice and expert numbers for objects, other
                     start_idx = end_idx
-                kt_target_acc.append(target_acc)
+                # kt_target_acc.append(target_acc)
+                kt_target_acc[user[2]] = target_acc
 
             if(demo_type == 'v'):
                 # start_idx = 0
@@ -467,23 +486,28 @@ if args.eid == '2b':
                     # One plot showing both novice and expert numbers for objects, other
                     # start_idx = end_idx
 
-                video_target_acc.append(target_acc)
+                video_target_acc[user[2]] = target_acc
+                # video_target_acc.append(target_acc)
 
     # print(all_fix)
     with open('2b_kt_novice.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         kf_names = kt_target_acc[0].keys()
-        expert_writer.writerow(kf_names)
+        u_kf_names = ['User ID'] + kf_names
+        expert_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
         for acc in kt_target_acc:
             value_list = [acc[i][0]*100.0/acc[i][1]  if acc[i][1]!=0 else -1 for i in kf_names]
+            value_list = [u] + value_list
             expert_writer.writerow(value_list)
 
     with open('2b_video_novice.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         kf_names = video_target_acc[0].keys()
-        expert_writer.writerow(kf_names)
+        u_kf_names = ['User ID'] + kf_names
+        expert_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
         for acc in video_target_acc:
             value_list = [acc[i][0]*100.0/acc[i][1]  if acc[i][1]!=0 else -1  for i in kf_names]
+            value_list = [u] + value_list
             expert_writer.writerow(value_list)

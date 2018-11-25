@@ -401,6 +401,7 @@ def get_video_keyframe_labels(user_id, video_file, video_kf_file):
                     frame_idx = math.floor(kf_time*fps)
                 k = kf_type[i]
                 keyframes[frame_idx] = k
+                all_keyframe_indices.append(frame_idx)
 
     print('Found start and stop keyframe indices')
     return keyframes, all_keyframe_indices
