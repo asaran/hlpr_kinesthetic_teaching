@@ -733,4 +733,128 @@ if args.eid == '3a':
     #         value_list = [acc[i][0]*100.0/acc[i][1] if acc[i][1]!=0 else -1 for i in kf_names]
     #         value_list = [u] + value_list
     #         expert_writer.writerow(value_list)
+
+
+
+if args.eid == '3b':
+    print('Do long fixations line up with keyframes?')
+    print('Video versus KT demos (novice users)')
+
+    plt.figure(1, figsize=(20,5))
+    plt.figure(2, figsize=(20,5))
+
+    user_dir = novice_dir
+    print("processing Expert Users' Video Demos...")
+    for i in range(len(novices)):
+    # for i in range(1):
+        user = novices[i]
+        print(user) #KT1,KT2
+        dir_name = os.listdir(user_dir+user)
+
+        a = user_dir+user+'/'+dir_name[0]+'/'+'segments/'
+        d = os.listdir(a)
+
+        exps = order[user]
+
+        bagloc = bag_dir + user + '/bags/'
+        bagfiles = os.listdir(bagloc)
+        
+        for seg in d:
+            print('Segment ', seg)
+            demo_type = exps[0] if int(seg)<=3 else exps[1]
+
+            if(int(seg)!=1 and int(seg)!=4):
+                continue
+
+            bag_file = ''
+            if(demo_type=='k'):
+                for file in bagfiles:
+                    if (file.endswith("kt-p1.bag")):
+                        bag_file = bagloc + file
+                
+                if bag_file == '':
+                    print('Bag file does not exist for KT demo, skipping...')
+                    continue
+
+            # target_acc = {
+            #     'Reaching': [0, 0],
+            #     'Grasping': [0, 0],
+            #     'Transport': [0, 0],
+            #     'Pouring': [0, 0],
+            #     'Return': [0, 0],
+            #     'Release': [0, 0]
+            # }
+
+            keyframe_color = {
+                'Reaching': 'navy',
+                'Grasping': 'orange',
+                'Close': 'purple',
+                'Transport': 'peru',
+                'Pouring': 'k',
+                'Return': 'salmon',
+                'Open': 'darkolivegreen',
+                'Release': 'lightskyblue',
+                'Other': 'grey'
+            }
+
+            data, gp, model, all_vts = read_json(a+seg)
+            video_file = a+seg+'/fullstream.mp4'
+            if(demo_type=='k'):
+                keyframes, keyframe_indices = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
+            if(demo_type=='v'):
+                keyframes, keyframe_indices = get_video_keyframe_labels(user, video_file, video_kf_file)
+
+            # print(keyframes)
+            # Find end of first pouring - start of next pouring
+            first_grasp = False
+            pouring_round = 0
+
+            hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+
+            if(demo_type=='k'):
+                start_idx = 0  
+                end_idx = keyframe_indices[-1] 
+                fixation_color_list, fixation_idx_list = filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
+
+                plt.figure(1)
+                plt.scatter(fixation_idx_list,np.repeat(i,len(fixation_idx_list)),color=fixation_color_list, s=5, marker='^') #, marker='|'
+
+                # Mark keyframe boundaries
+                for fid in keyframe_indices:
+                    kf_type = keyframes[fid]
+                    plt.vlines(x=fid, color=keyframe_color[kf_type], linestyle='--', ymin=i-0.3, ymax=i+0.3, label=kf_type)
+
+            if(demo_type=='v'):
+                start_idx = keyframe_indices[0] 
+                end_idx = keyframe_indices[-2] 
+                fixation_color_list, fixation_idx_list = filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
+
+                plt.figure(2)
+                plt.scatter(fixation_idx_list,np.repeat(i,len(fixation_idx_list)),color=fixation_color_list, s=5, marker='^') #, marker='|'
+
+                # Mark keyframe boundaries
+                for fid in keyframe_indices[1:-2]:
+                    kf_type = keyframes[fid]
+                    plt.vlines(x=fid, color=keyframe_color[kf_type], linestyle='--', ymin=i-0.3, ymax=i+0.3, label=kf_type)
+
+
+    plt.figure(1)
+    title = 'Pouring Task - Novice users, KT Demos'
+    plt.title(title)
+    # unique keyframe legend
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys())
+    plt.savefig('vis/'+title)
+
+
+    plt.figure(2)
+    title = 'Pouring Task - Novice users, Video Demos'
+    plt.title(title)
+    # unique keyframe legend
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys())
+    plt.savefig('vis/'+title)
+
     
