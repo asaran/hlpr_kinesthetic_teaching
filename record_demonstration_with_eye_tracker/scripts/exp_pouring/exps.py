@@ -648,14 +648,14 @@ if args.eid == '3a':
 
             if(demo_type=='v'):
                 start_idx = keyframe_indices[0] 
-                end_idx = keyframe_indices[-1] 
+                end_idx = keyframe_indices[-2] 
                 fixation_color_list, fixation_idx_list = filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
 
                 plt.figure(2)
                 plt.scatter(fixation_idx_list,np.repeat(i,len(fixation_idx_list)),color=fixation_color_list, s=5, marker='^') #, marker='|'
 
                 # Mark keyframe boundaries
-                for fid in keyframe_indices:
+                for fid in keyframe_indices[1:-2]:
                     kf_type = keyframes[fid]
                     plt.vlines(x=fid, color=keyframe_color[kf_type], linestyle='--', ymin=i-0.3, ymax=i+0.3, label=kf_type)
 
