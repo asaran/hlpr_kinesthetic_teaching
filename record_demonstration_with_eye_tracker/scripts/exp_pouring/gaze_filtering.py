@@ -111,6 +111,8 @@ while success:
 
 	img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 	hsv = img_hsv[gaze_coords[1]][gaze_coords[0]]
+
+	# cv2.imwrite('../../data/imgs_pouring/'+str(count)+'.png', img)
 	
 	# color_name, color_value = get_color_name(hsv)
 	radius = 100
@@ -141,7 +143,7 @@ while success:
 	cv2.circle(img,gaze_coords, 25, (255,255,0), 3)
 	cv2.circle(img,gaze_coords, radius, (0,165,255), 3)
 	video.write(img)
-	# cv2.imwrite('../../data/imgs_pouring/'+str(count)+'.png', img)
+	
 	# cv2.imwrite('video_imgs/'+str(count)+'.png', img)
 	count += 1
 	success, img = vidcap.read()

@@ -245,7 +245,7 @@ if args.eid == '2a':
                 keyframes, keyframe_indices = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
             if(demo_type=='v'):
                 keyframes, keyframe_indices = get_video_keyframe_labels(user, video_file, video_kf_file)
-            print(keyframes)
+            # print(keyframes)
             # Find end of first pouring - start of next pouring
             first_grasp = False
             pouring_round = 0
@@ -274,28 +274,31 @@ if args.eid == '2a':
                     max_val = 0
                     for o in target_objects[kf_type][pouring_round]:
                         # print(o)
-                        max_val += fixations[o]
+                        if(fixations[o]!=-1):
+                            max_val += fixations[o]
                     max_color = target_objects[kf_type][pouring_round][0]
                     for key, val in fixations.items():
+                        if(val!=-1):
+                            continue
                         if val>max_val:
                             max_val = val
                             max_color = key
-                    if max_color == target_objects[kf_type][pouring_round][0]:
-                        target_acc[kf_type][0] += 1
-                    target_acc[kf_type][1] += 1
+                    if(max_val>0):
+                        if max_color == target_objects[kf_type][pouring_round][0]:
+                            target_acc[kf_type][0] += 1
+                        target_acc[kf_type][1] += 1
                     # all_fix.append(fixations)
                     # One plot showing both novice and expert numbers for objects, other
                     start_idx = end_idx
-                kt_target_acc[user[2]] = target_acc
+                kt_target_acc[user[2:]] = target_acc
 
             if(demo_type=='v'):
                 # start_idx = 0
-                # TODO: the start frame is not being taken care of
-                print(keyframe_indices) # TODO: keyframe indices is empty
-                for j in range(len(keyframe_indices)-1):
+                # print(keyframe_indices) 
+                for j in range(1,len(keyframe_indices)-1):
                     fid = keyframe_indices[j]
                     kf_type = keyframes[fid]
-                    print(kf_type)
+                    # print(kf_type)
                     if(kf_type=='Pouring'):
                         first_grasp = True
                     if kf_type=='Reaching' and first_grasp:
@@ -308,25 +311,29 @@ if args.eid == '2a':
                     max_val = 0
                     for o in target_objects[kf_type][pouring_round]:
                         # print(o)
-                        max_val += fixations[o]
+                        if(fixations[o]!=-1):
+                            max_val += fixations[o]
                     max_color = target_objects[kf_type][pouring_round][0]
                     for key, val in fixations.items():
+                        if(val!=-1):
+                            continue
                         if val>max_val:
                             max_val = val
                             max_color = key
-                    if max_color == target_objects[kf_type][pouring_round][0]:
-                        target_acc[kf_type][0] += 1
-                    target_acc[kf_type][1] += 1
+                    if(max_val>0):
+                        if max_color == target_objects[kf_type][pouring_round][0]:
+                            target_acc[kf_type][0] += 1
+                        target_acc[kf_type][1] += 1
                     # all_fix.append(fixations)
                     # One plot showing both novice and expert numbers for objects, other
                     # start_idx = end_idx
                 # print(experts[0][2])
-                video_target_acc[user[2]] = target_acc
+                video_target_acc[user[2:]] = target_acc
 
     # print(all_fix)
     with open('2a_kt_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = kt_target_acc[experts[0][2]].keys()
+        kf_names = kt_target_acc[experts[0][2:]].keys()
         u_kf_names = ['User ID'] + kf_names
         expert_writer.writerow(u_kf_names)
         
@@ -338,7 +345,7 @@ if args.eid == '2a':
 
     with open('2a_video_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = video_target_acc[experts[0][2]].keys()
+        kf_names = video_target_acc[experts[0][2:]].keys()
         u_kf_names = ['User ID'] + kf_names
         expert_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
@@ -365,6 +372,7 @@ if args.eid == '2b':
     user_dir = novice_dir
     print("processing Expert Users' Video Demos...")
     for i in range(len(novices)):
+    # for i in [4]:
         user = novices[i]
         print(user) #KT1,KT2
         dir_name = os.listdir(user_dir+user)
@@ -412,7 +420,7 @@ if args.eid == '2b':
                 keyframes, keyframe_indices = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
             if(demo_type=='v'):
                 keyframes, keyframe_indices = get_video_keyframe_labels(user, video_file, video_kf_file)
-            print(keyframes)
+            # print(keyframes)
             # Find end of first pouring - start of next pouring
             first_grasp = False
             pouring_round = 0
@@ -441,24 +449,33 @@ if args.eid == '2b':
                     max_val = 0
                     for o in target_objects[kf_type][pouring_round]:
                         # print(o)
-                        max_val += fixations[o]
+                        if(fixations[o]!=-1):
+                            max_val += fixations[o]
+
                     max_color = target_objects[kf_type][pouring_round][0]
                     for key, val in fixations.items():
+                        if(val!=-1):
+                            continue
                         if val>max_val:
                             max_val = val
                             max_color = key
-                    if max_color == target_objects[kf_type][pouring_round][0]:
-                        target_acc[kf_type][0] += 1
-                    target_acc[kf_type][1] += 1
+
+                    if(max_val>0):
+                        if max_color == target_objects[kf_type][pouring_round][0]:
+                            target_acc[kf_type][0] += 1
+                        target_acc[kf_type][1] += 1
                     # all_fix.append(fixations)
                     # One plot showing both novice and expert numbers for objects, other
                     start_idx = end_idx
                 # kt_target_acc.append(target_acc)
-                kt_target_acc[user[2]] = target_acc
+                kt_target_acc[user[2:]] = target_acc
 
             if(demo_type == 'v'):
                 # start_idx = 0
-                for j in range(len(keyframe_indices)-1):
+                # print(keyframes)
+                # print(keyframe_indices)
+                for j in range(1,len(keyframe_indices)-1):
+                    # print(j)
                     fid = keyframe_indices[j]
                     kf_type = keyframes[fid]
                     if(kf_type=='Pouring'):
@@ -473,41 +490,47 @@ if args.eid == '2b':
                     max_val = 0
                     for o in target_objects[kf_type][pouring_round]:
                         # print(o)
-                        max_val += fixations[o]
+                        if(fixations[o]!=-1):
+                            max_val += fixations[o]
                     max_color = target_objects[kf_type][pouring_round][0]
                     for key, val in fixations.items():
+                        if(val!=-1):
+                            continue
                         if val>max_val:
                             max_val = val
                             max_color = key
-                    if max_color == target_objects[kf_type][pouring_round][0]:
-                        target_acc[kf_type][0] += 1
-                    target_acc[kf_type][1] += 1
+                    if(max_val>0):
+                        if max_color == target_objects[kf_type][pouring_round][0]:
+                            target_acc[kf_type][0] += 1
+                        target_acc[kf_type][1] += 1
                     # all_fix.append(fixations)
                     # One plot showing both novice and expert numbers for objects, other
                     # start_idx = end_idx
 
-                video_target_acc[user[2]] = target_acc
+                video_target_acc[user[2:]] = target_acc
                 # video_target_acc.append(target_acc)
 
     # print(all_fix)
     with open('2b_kt_novice.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = kt_target_acc[0].keys()
+        # kf_names = kt_target_acc[0].keys()
+        kf_names = kt_target_acc[novices[4][2:]].keys()
         u_kf_names = ['User ID'] + kf_names
         expert_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
-        for acc in kt_target_acc:
+        for u, acc in kt_target_acc.items():
             value_list = [acc[i][0]*100.0/acc[i][1]  if acc[i][1]!=0 else -1 for i in kf_names]
             value_list = [u] + value_list
             expert_writer.writerow(value_list)
 
     with open('2b_video_novice.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = video_target_acc[0].keys()
+        # kf_names = video_target_acc[0].keys()
+        kf_names = video_target_acc[novices[4][2:]].keys()
         u_kf_names = ['User ID'] + kf_names
         expert_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
-        for acc in video_target_acc:
+        for u, acc in video_target_acc.items():
             value_list = [acc[i][0]*100.0/acc[i][1]  if acc[i][1]!=0 else -1  for i in kf_names]
             value_list = [u] + value_list
             expert_writer.writerow(value_list)

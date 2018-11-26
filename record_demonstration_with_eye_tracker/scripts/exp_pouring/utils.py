@@ -400,8 +400,10 @@ def get_video_keyframe_labels(user_id, video_file, video_kf_file):
                     kf_time = float(d)
                     frame_idx = math.floor(kf_time*fps)
                 k = kf_type[i]
-                keyframes[frame_idx] = k
-                all_keyframe_indices.append(frame_idx)
+                # TODO: The same frame_idx can have multiple kf_types
+                if(frame_idx not in keyframes or k!='Stop'):
+                    keyframes[frame_idx] = k
+                    all_keyframe_indices.append(frame_idx)
 
     print('Found start and stop keyframe indices')
     return keyframes, all_keyframe_indices
@@ -960,9 +962,9 @@ def get_cumulative_gaze_dist(data, video_file):
 def get_color_name(hsv):
 
     color_ranges = {
-        'red':   [[161,140,70],[181,227,167]],
-        'green': [[36,64,28],[70,155,159]],
-        'yellow': [[0,90,57],[32,155,169]],
+        'red':   [[161,140,70],[184,255,255]],
+        'green': [[36,64,28],[70,155,220]],
+        'yellow': [[0,90,100],[32,180,180]],
         'blue': [[94,111,34],[118,165,136]],
         'black': [[0,0,0],[180,255,40]],
         'white': [[0,0,170],[180,255,255]]
@@ -988,7 +990,7 @@ def get_color_name(hsv):
                     color = n 
                     value = color_val[n]
 
-    pasta_color_range = [[0,30,0],[40,130,150]]
+    pasta_color_range = [[0,30,0],[40,130,100]]
     p = pasta_color_range
     if color=='':
         if h>=p[0][0] and h<=p[1][0]:
@@ -1053,6 +1055,7 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
     second_max_val = 0
     second_max_color = ''
     if max_color=='other':
+        # print('***other***')
         for key,val in color_hist.items():
             if key=='other':
                 continue
@@ -1063,6 +1066,7 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
         if second_max_val>5:
             max_color = second_max_color
             max_val = second_max_val
+        # print(max_color, second_max_val)
 
     value = color_val[max_color]
     return max_color, value
@@ -1163,7 +1167,7 @@ def get_hsv_color_timeline(data, video_file):
 
 
 def filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx):
-    print('filtering fixations')
+    # print('filtering fixations')
     vidcap = cv2.VideoCapture(video_file)
     fps = vidcap.get(cv2.CAP_PROP_FPS)
     # print fps     #25 fps
@@ -1275,6 +1279,9 @@ def filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices,
     # video.release()
 
     for f in fixation_count:
-        fixation_count[f] = fixation_count[f]*100.0/valid_count
+        if(valid_count!=0):
+            fixation_count[f] = fixation_count[f]*100.0/valid_count
+        else: 
+            fixation_count[f] = -1
 
     return fixation_count
