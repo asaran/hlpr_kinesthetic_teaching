@@ -550,7 +550,7 @@ if args.eid == '3a':
     print('Video versus KT demos (expert users)')
 
     plt.figure(1, figsize=(20,5))
-    # plt.figure(2, figsize=(20,5))
+    plt.figure(2, figsize=(20,5))
 
     # kt_target_acc, video_target_acc = {}, {}
 
@@ -615,7 +615,8 @@ if args.eid == '3a':
                 'Pouring': 'k',
                 'Return': 'salmon',
                 'Open': 'darkolivegreen',
-                'Release': 'lightskyblue'
+                'Release': 'lightskyblue',
+                'Other': 'grey'
             }
 
             data, gp, model, all_vts = read_json(a+seg)
@@ -645,8 +646,32 @@ if args.eid == '3a':
                     kf_type = keyframes[fid]
                     plt.vlines(x=fid, color=keyframe_color[kf_type], linestyle='--', ymin=i-0.3, ymax=i+0.3, label=kf_type)
 
+            if(demo_type=='v'):
+                start_idx = keyframe_indices[0] 
+                end_idx = keyframe_indices[-1] 
+                fixation_color_list, fixation_idx_list = filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
+
+                plt.figure(2)
+                plt.scatter(fixation_idx_list,np.repeat(i,len(fixation_idx_list)),color=fixation_color_list, s=5, marker='^') #, marker='|'
+
+                # Mark keyframe boundaries
+                for fid in keyframe_indices:
+                    kf_type = keyframes[fid]
+                    plt.vlines(x=fid, color=keyframe_color[kf_type], linestyle='--', ymin=i-0.3, ymax=i+0.3, label=kf_type)
+
+
     plt.figure(1)
     title = 'Pouring Task - Expert users, KT Demos'
+    plt.title(title)
+    # unique keyframe legend
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys())
+    plt.savefig('vis/'+title)
+
+
+    plt.figure(2)
+    title = 'Pouring Task - Expert users, Video Demos'
     plt.title(title)
     # unique keyframe legend
     handles, labels = plt.gca().get_legend_handles_labels()
