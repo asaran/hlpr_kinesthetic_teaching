@@ -400,7 +400,7 @@ def get_video_keyframe_labels(user_id, video_file, video_kf_file):
                     kf_time = float(d)
                     frame_idx = math.floor(kf_time*fps)
                 k = kf_type[i]
-                # TODO: The same frame_idx can have multiple kf_types
+                # The same frame_idx can have multiple kf_types
                 if(frame_idx not in keyframes or k!='Stop'):
                     keyframes[frame_idx] = k
                     all_keyframe_indices.append(frame_idx)
@@ -976,7 +976,8 @@ def get_color_name(hsv):
         'red': (0,0,255),
         'green': (0,255,0),
         'yellow': (0,255,255),
-        'blue': (255,0,0)
+        'blue': (255,0,0),
+        'pasta': (0,215,225)
     }
 
     h,s,v = hsv
@@ -997,7 +998,7 @@ def get_color_name(hsv):
             if s>=p[0][1] and s<=p[1][1]:
                 if v>=p[0][2] and v<=p[1][2]:
                     color = 'pasta'
-                    value = color_val['yellow']
+                    value = color_val['pasta']
 
     return color, value
 
@@ -1285,3 +1286,117 @@ def filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices,
             fixation_count[f] = -1
 
     return fixation_count
+
+
+def filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx):
+    # print('filtering fixations')
+    vidcap = cv2.VideoCapture(video_file)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    # print fps     #25 fps
+    success, img = vidcap.read()
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    # video = cv2.VideoWriter('../../data/gaze_pouring_gaze_filtered_user6_exp3.avi',fourcc,fps,(1920,1080))
+
+    # video_fixation_count = {
+    #   'red': 0,
+    #   'yellow': 0,
+    #   'blue': 0,
+    #   'green': 0,
+    #   'other': 0
+    # }
+
+    # KT_fixation_count = {
+    #     'red': 0,
+    #     'yellow': 0,
+    #     'blue': 0,
+    #     'green': 0,
+    #     'black': 0,
+    #     'other': 0,
+    #     'pasta': 0
+    # }
+
+    # fixation_count = KT_fixation_count
+
+    # if demo_type=='k':
+    #   fixation_count = KT_fixation_count
+    # else if demo_type=='v':
+    #   fixation_count = video_fixation_count
+
+    fixation_list, fixation_idx_list = [], []
+
+    all_ts = sorted(gp.keys())
+    total_count = 0
+    imgs = []       # list of image frames
+    frame2ts = []   # corresponding list of video time stamp values in microseconds
+    window = []
+    win_size = 3
+    radius = 100
+    valid_count = 0
+    # print(start_idx, end_idx)
+    while success:  
+        # print(count)
+        if total_count<start_idx or total_count>end_idx:
+            total_count += 1
+            success, img = vidcap.read()
+            continue
+
+        frame_ts = int((total_count/fps)*1000000)
+        frame2ts.append(frame_ts)
+
+        less = [a for a in all_vts if a<=frame_ts]
+        idx = len(less)-1
+
+        if idx<len(model):
+            m,c = model[idx]
+        else:
+            m,c = model[len(model)-1]
+        ts = m*frame_ts + c
+
+        tracker_ts,_ = takeClosest(all_ts,ts)
+
+        gaze = gp[tracker_ts]
+        gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
+
+        img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+        # hsv = img_hsv[gaze_coords[1]][gaze_coords[0]]
+
+        color_name, color_value = get_color_name_from_hist(gaze_coords, img_hsv, radius)
+        window.append(color_name)
+        if(len(window)>win_size):
+            del window[0]
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        # if(count in saccade_indices):
+        #     cv2.putText(img, 'SACCADE!!', (800, 250), font, 1.8, (192,192,192), 5, cv2.LINE_AA)
+
+        # else:
+        if total_count not in saccade_indices:
+            # might be a fixation
+            fixation = True
+            for det_c in window:
+                if det_c!=color_name:
+                    fixation=False
+            if(fixation):
+                # cv2.putText(img, '*****FIXATION****', (1430, 500), font, 1.8, color_value, 5, cv2.LINE_AA)
+                # fixation_count[color_name] += 1
+                b,g,r = color_value
+                c_val = [r/255.0, g/255.0, b/255.0]
+                if(color_name != 'other'):
+                    fixation_list.append(c_val)
+                    fixation_idx_list.append(valid_count)
+
+        valid_count += 1
+        total_count += 1
+        success, img = vidcap.read()
+
+    cv2.destroyAllWindows()
+    # video.release()
+
+    # for f in fixation_count:
+    #     if(valid_count!=0):
+    #         fixation_count[f] = fixation_count[f]*100.0/valid_count
+    #     else: 
+    #         fixation_count[f] = -1
+
+    return fixation_list, fixation_idx_list
