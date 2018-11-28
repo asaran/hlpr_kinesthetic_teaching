@@ -674,8 +674,8 @@ if args.eid == '2e':
             value_list = [u] + value_list
             expert_writer.writerow(value_list)
 
-    with open('2e_kt_novice.csv', mode='w') as expert_file:
-        novice_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    with open('2e_kt_novice.csv', mode='w') as novice_file:
+        novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         # kf_names = kt_target_acc[0].keys()
         kf_names = novice_target_acc[novices[0][2:]].keys()
         u_kf_names = ['User ID'] + kf_names
@@ -815,8 +815,8 @@ if args.eid == '2f':
             value_list = [u] + value_list
             expert_writer.writerow(value_list)
 
-    with open('2f_kt_novice.csv', mode='w') as expert_file:
-        novice_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    with open('2f_kt_novice.csv', mode='w') as novice_file:
+        novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         # kf_names = kt_target_acc[0].keys()
         kf_names = novice_target_acc[novices[0][2:]].keys()
         u_kf_names = ['User ID'] + kf_names
