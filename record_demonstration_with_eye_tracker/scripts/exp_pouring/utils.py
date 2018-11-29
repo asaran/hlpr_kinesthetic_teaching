@@ -222,7 +222,7 @@ def sync_func(data, video_file):
         gaze = gp[tracker_ts]
         gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
         #print(gaze_coords)
-        h,s,v = img[gaze_coords[1]][gaze_coords[0]]
+        h,s,v = img[gaze_coords[1]-1][gaze_coords[0]-1]
         if(count==0):
         #   last_fixation_color = (h,s,v)
             t = 0
@@ -479,7 +479,7 @@ def get_color_timeline(data, video_file, keep_saccades):
         gaze_pts.append(gaze_coords)
 
         #h,s,v = img[gaze_coords[1]][gaze_coords[0]]
-        b, g, r = img[gaze_coords[1]][gaze_coords[0]]
+        b, g, r = img[gaze_coords[1]-1][gaze_coords[0]-1]
         instant_color = [r/255.0,g/255.0,b/255.0]
         timeline.append(instant_color)
 
@@ -574,7 +574,7 @@ def get_color_timeline_with_seg(data, video_file, bag_file, keep_saccades):
         gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
         gaze_pts.append(gaze_coords)
         #h,s,v = img[gaze_coords[1]][gaze_coords[0]]
-        b, g, r = img[gaze_coords[1]][gaze_coords[0]]
+        b, g, r = img[gaze_coords[1]-1][gaze_coords[0]-1]
         instant_color = [r/255.0,g/255.0,b/255.0]
         timeline.append(instant_color)
 
@@ -1025,7 +1025,7 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
     }
 
     x, y = gaze_coords
-    hsv = img_hsv[y][x]
+    hsv = img_hsv[y-1][x-1]
     h,s,v = hsv
     color = ''
     value = None
@@ -1143,7 +1143,7 @@ def get_hsv_color_timeline(data, video_file):
         gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
         gaze_pts.append(gaze_coords)
 
-        h,s,v = img_hsv[gaze_coords[1]][gaze_coords[0]]
+        h,s,v = img_hsv[gaze_coords[1]-1][gaze_coords[0]-1]
         # b, g, r = img[gaze_coords[1]][gaze_coords[0]]
         # instant_color = [r/255.0,g/255.0,b/255.0]
         instant_color = [h, s, v]
