@@ -49,7 +49,7 @@ if args.eid == '1a':
     print('Percentage of time during entire demo - spent on objects or other parts of workspace')
     print('Measure differences between novice and experts - video demos')
 
-    all_expert_fix, all_novice_fix = [], []
+    all_expert_fix, all_novice_fix = {}, {}
     for u, user_dir, all_fix in zip([experts,novices],[expert_dir,novice_dir],[all_expert_fix,all_novice_fix]):
 
         # Get all expert users
@@ -82,33 +82,38 @@ if args.eid == '1a':
                 print(keyframe_indices)
                 start_idx, end_idx = keyframe_indices['Start'][0], keyframe_indices['Stop'][0]
                 fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
-                all_fix.append(fixations)
+                # all_fix.append(fixations)
+                all_fix[user[2:]] = fixations
             # One plot showing both novice and expert numbers for objects, other
 
     # print(all_expert_fix)
     # print(all_novice_fix)
     with open('1a_video_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_expert_fix[0].keys()
-        expert_writer.writerow(color_names)
+        color_names = all_expert_fix[experts[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        expert_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for expert_fix in all_expert_fix:
+        for us, expert_fix in all_expert_fix.items():
             value_list = [expert_fix[i] for i in color_names]
+            value_list = [us] + value_list
             expert_writer.writerow(value_list)
 
     with open('1a_video_novice.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_novice_fix[0].keys()
-        novice_writer.writerow(color_names)
+        color_names = all_novice_fix[novices[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        novice_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for novice_fix in all_novice_fix:
+        for us, novice_fix in all_novice_fix.items():
             value_list = [novice_fix[i] for i in color_names]
+            value_list = [us] + value_list
             novice_writer.writerow(value_list)
 
 if args.eid == '1b':
     print('Percentage of time during entire demo - spent on objects, gripper or other parts of workspace')
     print('Measure differences between novice and experts - KT demos')
-    all_expert_fix, all_novice_fix = [], []
+    all_expert_fix, all_novice_fix = {}, {}
     for u, user_dir, all_fix in zip([experts,novices],[expert_dir,novice_dir],[all_expert_fix,all_novice_fix]):
 
         # Get all expert users
@@ -156,26 +161,31 @@ if args.eid == '1b':
                 hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
 
                 fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx,end_idx)
-                all_fix.append(fixations)
+                # all_fix.append(fixations)
+                all_fix[user[2:]] = fixations
                 # One plot showing both novice and expert numbers for objects, other
 
     # print(all_fix)
     with open('1b_kt_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_expert_fix[0].keys()
-        expert_writer.writerow(color_names)
+        color_names = all_expert_fix[experts[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        expert_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for expert_fix in all_expert_fix:
+        for us,expert_fix in all_expert_fix.items():
             value_list = [expert_fix[i] for i in color_names]
+            value_list = [us] + value_list
             expert_writer.writerow(value_list)
 
     with open('1b_kt_novice.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_novice_fix[0].keys()
-        novice_writer.writerow(color_names)
+        color_names = all_novice_fix[novices[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        novice_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for novice_fix in all_novice_fix:
+        for us,novice_fix in all_novice_fix.items():
             value_list = [novice_fix[i] for i in color_names]
+            value_list = [us] + value_list
             novice_writer.writerow(value_list)
 
 if args.eid == '2a':
@@ -183,7 +193,7 @@ if args.eid == '2a':
     print('Plate versus Bowl (Video demo for all users)')
 
     user_dir = all_dir
-    bowl_fixations, plate_fixations = [], []
+    bowl_fixations, plate_fixations = {}, {}
     for i in range(len(all_users)):
         user = all_users[i]
         print(user) #KT1,KT2
@@ -214,27 +224,32 @@ if args.eid == '2a':
             fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
 
             if(cond=='p'):
-                plate_fixations.append(fixations)
+                # plate_fixations.append(fixations)
+                plate_fixations[user[2:]] = fixations
             if (cond=='b'):
-                bowl_fixations.append(fixations)
-
+                # bowl_fixations.append(fixations)
+                bowl_fixations[user[2:]] = fixations
 
     with open('2a_video_plate_all.csv', mode='w') as plate_file:
         plate_writer = csv.writer(plate_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = plate_fixations[0].keys()
-        plate_writer.writerow(color_names)
+        color_names = plate_fixations[all_users[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        plate_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for fix in plate_fixations:
+        for us,fix in plate_fixations.items():
             value_list = [fix[i] for i in color_names]
+            value_list = [us] + value_list
             plate_writer.writerow(value_list)
 
     with open('2a_video_bowl_all.csv', mode='w') as bowl_file:
         bowl_writer = csv.writer(bowl_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = bowl_fixations[0].keys()
-        bowl_writer.writerow(color_names)
+        color_names = bowl_fixations[all_users[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        bowl_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for fix in bowl_fixations:
+        for us,fix in bowl_fixations.items():
             value_list = [fix[i] for i in color_names]
+            value_list = [us] + value_list
             bowl_writer.writerow(value_list)
     
 
@@ -243,7 +258,7 @@ if args.eid == '2b':
     print('Plate versus Bowl (KT demo for expert users)')
     
     user_dir = expert_dir
-    bowl_fixations, plate_fixations = [], []
+    bowl_fixations, plate_fixations = {}, {}
     for i in range(len(experts)):
         user = experts[i]
         print(user) #KT1,KT2
@@ -290,27 +305,32 @@ if args.eid == '2b':
             fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
 
             if(cond=='p'):
-                plate_fixations.append(fixations)
+                # plate_fixations.append(fixations)
+                plate_fixations[user[2:]] = fixations
             if (cond=='b'):
-                bowl_fixations.append(fixations)
-
+                # bowl_fixations.append(fixations)
+                bowl_fixations[user[2:]] = fixations
 
     with open('2b_KT_plate_experts.csv', mode='w') as plate_file:
         plate_writer = csv.writer(plate_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = plate_fixations[0].keys()
-        plate_writer.writerow(color_names)
+        color_names = plate_fixations[experts[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        plate_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for fix in plate_fixations:
+        for us,fix in plate_fixations.items():
             value_list = [fix[i] for i in color_names]
+            value_list = [us] + value_list
             plate_writer.writerow(value_list)
 
     with open('2b_KT_bowl_experts.csv', mode='w') as bowl_file:
         bowl_writer = csv.writer(bowl_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = bowl_fixations[0].keys()
-        bowl_writer.writerow(color_names)
+        color_names = bowl_fixations[experts[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        bowl_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for fix in bowl_fixations:
+        for us,fix in bowl_fixations.items():
             value_list = [fix[i] for i in color_names]
+            value_list = [us] + value_list
             bowl_writer.writerow(value_list)
 
 
@@ -319,7 +339,7 @@ if args.eid == '2c':
     print('Plate versus Bowl (KT demo for novice users)')
 
     user_dir = novice_dir
-    bowl_fixations, plate_fixations = [], []
+    bowl_fixations, plate_fixations = {}, {}
     for i in range(len(novices)):
         user = novices[i]
         print(user) #KT1,KT2
@@ -366,27 +386,32 @@ if args.eid == '2c':
             fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
 
             if(cond=='p'):
-                plate_fixations.append(fixations)
+                # plate_fixations.append(fixations)
+                plate_fixations[user[2:]] = fixations
             if (cond=='b'):
-                bowl_fixations.append(fixations)
-
+                # bowl_fixations.append(fixations)
+                bowl_fixations[user[2:]] = fixations
 
     with open('2c_KT_plate_novice.csv', mode='w') as plate_file:
         plate_writer = csv.writer(plate_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = plate_fixations[0].keys()
-        plate_writer.writerow(color_names)
+        color_names = plate_fixations[novices[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        plate_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for fix in plate_fixations:
+        for us,fix in plate_fixations.items():
             value_list = [fix[i] for i in color_names]
+            value_list = [us] + value_list
             plate_writer.writerow(value_list)
 
     with open('2c_KT_bowl_novice.csv', mode='w') as bowl_file:
         bowl_writer = csv.writer(bowl_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = bowl_fixations[0].keys()
-        bowl_writer.writerow(color_names)
+        color_names = bowl_fixations[novices[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        bowl_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
-        for fix in bowl_fixations:
+        for us,fix in bowl_fixations.items():
             value_list = [fix[i] for i in color_names]
+            value_list = [us] + value_list
             bowl_writer.writerow(value_list)
     
 
