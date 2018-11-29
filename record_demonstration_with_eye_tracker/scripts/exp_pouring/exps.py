@@ -91,7 +91,7 @@ if args.eid == '1a':
     # print(all_novice_fix)
     with open('1a_video_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_expert_fix[0].keys()
+        color_names = all_expert_fix[experts[0][2:]].keys()
         u_color_names = ['User ID'] + color_names
         expert_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
@@ -102,7 +102,7 @@ if args.eid == '1a':
 
     with open('1a_video_novice.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_novice_fix[0].keys()
+        color_names = all_novice_fix[novices[0][2:]].keys()
         u_color_names = ['User ID'] + color_names
         novice_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
@@ -167,7 +167,7 @@ if args.eid == '1b':
     # print(all_fix)
     with open('1b_kt_expert.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_expert_fix[0].keys()
+        color_names = all_expert_fix[experts[0][2:]].keys()
         u_color_names = ['User ID'] + color_names
         expert_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
@@ -178,7 +178,7 @@ if args.eid == '1b':
 
     with open('1b_kt_novice.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_novice_fix[0].keys()
+        color_names = all_novice_fix[novices[0][2:]].keys()
         u_color_names = ['User ID'] + color_names
         novice_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
