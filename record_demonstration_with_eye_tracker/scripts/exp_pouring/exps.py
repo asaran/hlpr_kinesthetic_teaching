@@ -1,5 +1,6 @@
 # Experiments for the Pouring Task
 # 1. Percentage of time during entire demo - spent on objects, gripper or other parts of workspace 
+#TODO: get_hsv_color_timeline not using filter_fixations!!!
 #       a. Measure differences between novice and experts - video demos
 #       b. Measure differences between novice and experts - KT demos
 # 2. Perecentage accuarcy to predict reference frame per keyframe (same consecutive keyframes clubbed together) -- NO ANOVA
@@ -12,7 +13,7 @@
 # 3. Do long fixations line up with Keyframes? Visualization of fixations across users.
 #       a. Video versus KT demos (expert users)
 #       b. Video versus KT demos (novice users)
-# 4. Do keyframe and video demos match in overall fixations (removing black pixels)?
+# 4. Do keyframe and video demos match in overall fixations (removing black pixels, and tie break to next major color)?
 #       a. Video versus KT demos (expert users)
 #       b. Video versus KT demos (novice users)
 # 5. Is gaze-based fixation frame different between step KF and non-step KF?
@@ -24,7 +25,7 @@
 import argparse
 from utils import takeClosest, get_hsv_color_timeline, get_color_name_from_hist, get_kt_keyframes_labels
 from utils import get_video_keyframes, read_json, filter_fixations, get_kt_keyframes, get_video_keyframe_labels
-from utils import filter_fixations_with_timeline, get_step_kf_indices
+from utils import filter_fixations_with_timeline, get_step_kf_indices, filter_fixations_ignore_black
 import os
 import csv
 import matplotlib.pyplot as plt
@@ -294,7 +295,7 @@ if args.eid == '2a':
                             max_val += fixations[o]
                     max_color = target_objects[kf_type][pouring_round][0]
                     for key, val in fixations.items():
-                        if(val!=-1):
+                        if(val==-1): #bug
                             continue
                         if val>max_val:
                             max_val = val
@@ -331,7 +332,7 @@ if args.eid == '2a':
                             max_val += fixations[o]
                     max_color = target_objects[kf_type][pouring_round][0]
                     for key, val in fixations.items():
-                        if(val!=-1):
+                        if(val==-1):
                             continue
                         if val>max_val:
                             max_val = val
@@ -470,7 +471,7 @@ if args.eid == '2b':
 
                     max_color = target_objects[kf_type][pouring_round][0]
                     for key, val in fixations.items():
-                        if(val!=-1):
+                        if(val==-1):
                             continue
                         if val>max_val:
                             max_val = val
@@ -510,7 +511,7 @@ if args.eid == '2b':
                             max_val += fixations[o]
                     max_color = target_objects[kf_type][pouring_round][0]
                     for key, val in fixations.items():
-                        if(val!=-1):
+                        if(val==-1):
                             continue
                         if val>max_val:
                             max_val = val
@@ -653,7 +654,7 @@ if args.eid == '2e':
 
                         max_color = target_objects[kf_type][pouring_round][0]
                         for key, val in fixations.items():
-                            if(val!=-1):
+                            if(val==-1):
                                 continue
                             if val>max_val:
                                 max_val = val
@@ -794,7 +795,7 @@ if args.eid == '2f':
 
                         max_color = target_objects[kf_type][pouring_round][0]
                         for key, val in fixations.items():
-                            if(val!=-1):
+                            if(val==-1):
                                 continue
                             if val>max_val:
                                 max_val = val
@@ -1227,7 +1228,87 @@ if args.eid == '3b':
     plt.legend(by_label.values(), by_label.keys())
     plt.savefig('vis/'+title)
 
- 
+
+
+
+if args.eid == '4b':
+    print('Percentage of time during entire demo - spent on objects, gripper or other parts of workspace')
+    print('Measure differences between novice and experts - KT demos')
+    all_expert_fix, all_novice_fix = {}, {}
+    for u, user_dir, all_fix in zip([experts,novices],[expert_dir,novice_dir],[all_expert_fix,all_novice_fix]):
+
+        # Get all expert users
+        print("processing Expert Users' Video Demos...")
+        for i in range(len(u)):
+            user = u[i]
+            print(user) #KT1,KT2
+            dir_name = os.listdir(user_dir+user)
+
+            a = user_dir+user+'/'+dir_name[0]+'/'+'segments/'
+            d = os.listdir(a)
+
+            exps = order[user]
+
+            bagloc = bag_dir + user + '/bags/'
+            bagfiles = os.listdir(bagloc)
+
+
+            for seg in d:
+                print('Segment ', seg)
+                demo_type = exps[0] if int(seg)<=3 else exps[1]
+
+                if(int(seg)!=1 and int(seg)!=4):
+                    continue
+
+                if demo_type!='k':
+                    continue
+
+                bag_file = ''
+                for file in bagfiles:
+                    if (file.endswith("kt-p1.bag")):
+                        bag_file = bagloc + file
+                
+                if bag_file == '':
+                    print('Bag file does not exist for KT demo, skipping...')
+                    continue
+
+                data, gp, model, all_vts = read_json(a+seg)
+                video_file = a+seg+'/fullstream.mp4'
+                keyframes = get_kt_keyframes(all_vts, model, gp, video_file, bag_file)
+                # print(keyframes)
+                start_idx, end_idx = keyframes[0], keyframes[-1]
+                hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+
+                fixations = filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx,end_idx)
+                # all_fix.append(fixations)
+                all_fix[user[2:]] = fixations
+                # One plot showing both novice and expert numbers for objects, other
+
+    # print(all_fix)
+    with open('4b_kt_expert.csv', mode='w') as expert_file:
+        expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        color_names = all_expert_fix[experts[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        expert_writer.writerow(u_color_names)
+        # no_of_colors = length(color_names)
+        for us, expert_fix in all_expert_fix.items():
+            value_list = [expert_fix[i] for i in color_names]
+            value_list = [us] + value_list
+            expert_writer.writerow(value_list)
+
+    with open('4b_kt_novice.csv', mode='w') as novice_file:
+        novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        color_names = all_novice_fix[novices[0][2:]].keys()
+        u_color_names = ['User ID'] + color_names
+        novice_writer.writerow(u_color_names)
+        # no_of_colors = length(color_names)
+        for us, novice_fix in all_novice_fix.items():
+            value_list = [novice_fix[i] for i in color_names]
+            value_list = [us] + value_list
+            novice_writer.writerow(value_list)
+
+
+
 
 
 
@@ -1249,9 +1330,9 @@ if args.eid == '5a':
 
         # Get all expert/novice users
         print("processing users' KT Demos...")
-        # for i in range(len(u)):
+        for i in range(len(u)):
         # print(u)
-        for i in range(1):
+        # for i in range(1):
             user = u[i]
             print(user) #KT1,KT2
             dir_name = os.listdir(user_dir+user)
@@ -1344,22 +1425,28 @@ if args.eid == '5a':
                     #         max_val += fixations[o]
 
                     # max_color = target_objects[kf_type][pouring_round][0]
+                    print(fixations_before)
+                    print(fixations_after)
                     for key, val in fixations_before.items():
-                        if(val!=-1):
+                        if(val==1):
+                            print('continuing')
                             continue
+                        # print('here')
                         if val>max_val_before:
                             max_val_before = val
                             max_color_before = key
 
 
                     for key, val in fixations_after.items():
-                        if(val!=-1):
+                        if(val==-1):
                             continue
                         if val>max_val_after:
                             max_val_after = val
                             max_color_after = key
 
                     if(max_val_before>0 and max_val_after>0):
+                        print(kf_type)
+                        print('****max colors:')
                         print(max_color_before, max_color_after)
                         if max_color_after!=max_color_before:
                             target_acc[kf_type][0] += 1
