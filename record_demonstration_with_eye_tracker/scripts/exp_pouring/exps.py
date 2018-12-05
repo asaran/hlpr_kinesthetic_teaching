@@ -14,9 +14,11 @@
 #       a. Video versus KT demos (expert users)
 #       b. Video versus KT demos (novice users)
 # 4. Do keyframe and video demos match in overall fixations (removing black pixels, and tie break to next major color)?
+# Chi-square test:   http://www.stat.yale.edu/Courses/1997-98/101/chigf.htm
+# TODO: account for pasta with the right color object based on keyframe
 #       a. Video versus KT demos (expert users)
 #       b. Video versus KT demos (novice users)
-# 5. Is gaze-based fixation frame different between step KF and non-step KF?
+# 5. Is gaze-based fixation frame different between step KF and non-step KF? 
 #       a. KT demos - ref frame before and after KF (expert users)
 #       b. KT demos - ref frame before and after KF (novice users)
 
@@ -53,8 +55,8 @@ condition_names = {
 }
 
 video_kf_file = 'video_kf.txt'
-bag_dir = '/home/akanksha/Documents/gaze_for_lfd_study_data/gaze_lfd_user_study/'
-# bag_dir = '../../data/bags/'
+# bag_dir = '/home/akanksha/Documents/gaze_for_lfd_study_data/gaze_lfd_user_study/'
+bag_dir = '../../data/bags/'
 
 if args.eid == '1a':
     print('Percentage of time during entire demo - spent on objects or other parts of workspace')
@@ -267,7 +269,7 @@ if args.eid == '2a':
             first_grasp = False
             pouring_round = 0
 
-            hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+            hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
             if(demo_type=='k'):
                 start_idx = 0   
@@ -361,15 +363,15 @@ if args.eid == '2a':
             expert_writer.writerow(value_list)
 
     with open('2a_video_expert.csv', mode='w') as expert_file:
-        novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = video_target_acc[novices[0][2:]].keys()
+        expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        kf_names = video_target_acc[experts[0][2:]].keys()
         u_kf_names = ['User ID'] + kf_names
-        novice_writer.writerow(u_kf_names)
+        expert_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
         for u,acc in video_target_acc.items():
             value_list = [acc[i][0]*100.0/acc[i][1] if acc[i][1]!=0 else -1 for i in kf_names]
             value_list = [u] + value_list
-            novice_writer.writerow(value_list)
+            expert_writer.writerow(value_list)
     
 
 if args.eid == '2b':
@@ -442,7 +444,7 @@ if args.eid == '2b':
             first_grasp = False
             pouring_round = 0
 
-            hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+            hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
             if(demo_type=='k'):
                 start_idx = 0
@@ -528,19 +530,19 @@ if args.eid == '2b':
                 # video_target_acc.append(target_acc)
 
     # print(all_fix)
-    with open('2b_kt_novice.csv', mode='w') as expert_file:
-        expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    with open('2b_kt_novice.csv', mode='w') as novice_file:
+        novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         # kf_names = kt_target_acc[0].keys()
         kf_names = kt_target_acc[novices[4][2:]].keys()
         u_kf_names = ['User ID'] + kf_names
-        expert_writer.writerow(u_kf_names)
+        novice_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
         for u, acc in kt_target_acc.items():
             value_list = [acc[i][0]*100.0/acc[i][1]  if acc[i][1]!=0 else -1 for i in kf_names]
             value_list = [u] + value_list
-            expert_writer.writerow(value_list)
+            novice_writer.writerow(value_list)
 
-    with open('2b_video_novice.csv', mode='w') as expert_file:
+    with open('2b_video_novice.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         # kf_names = video_target_acc[0].keys()
         kf_names = video_target_acc[novices[4][2:]].keys()
@@ -625,7 +627,7 @@ if args.eid == '2e':
                 first_grasp = False
                 pouring_round = 0
 
-                hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+                hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
                 if(demo_type=='k'):
                     start_idx = 0
@@ -766,7 +768,7 @@ if args.eid == '2f':
                 first_grasp = False
                 pouring_round = 0
 
-                hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+                hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
                 if(demo_type=='k'):
                     start_idx = 0
@@ -884,7 +886,7 @@ if args.eid == '2h':
                 keyframes = get_kt_keyframes(all_vts, model, gp, video_file, bag_file)
                 # print(keyframes)
                 start_idx, end_idx = keyframes[0], keyframes[-1]
-                hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+                hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
                 fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx,end_idx)
                 # all_fix.append(fixations)
@@ -935,8 +937,8 @@ if args.eid == '3a':
     # }
     user_dir = expert_dir
     print("processing Expert Users' Video Demos...")
-    for i in range(len(experts)):
-    # for i in range(1):
+    # for i in range(len(experts)):
+    for i in range(1):
         user = experts[i]
         print(user) #KT1,KT2
         dir_name = os.listdir(user_dir+user)
@@ -1002,7 +1004,7 @@ if args.eid == '3a':
             first_grasp = False
             pouring_round = 0
 
-            hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+            hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
             if(demo_type=='k'):
                 start_idx = 0  
@@ -1017,6 +1019,12 @@ if args.eid == '3a':
                     kf_type = keyframes[fid]
                     plt.vlines(x=fid, color=keyframe_color[kf_type], linestyle='--', ymin=i-0.3, ymax=i+0.3, label=kf_type)
 
+                # Mark keyframe range label
+                for j in range(1,len(keyframe_indices)):
+                    print(keyframe_indices[j-1], keyframe_indices[j])
+                    # plt.axhline(y=i+0.2, xmin=keyframe_indices[j-1], xmax=keyframe_indices[j], linewidth = 4, color = 'black')
+                    plt.hlines(y=i+0.2, xmin=keyframe_indices[j-1], xmax=keyframe_indices[j], colors='k')
+
             if(demo_type=='v'):
                 start_idx = keyframe_indices[0] 
                 end_idx = keyframe_indices[-2] 
@@ -1029,6 +1037,10 @@ if args.eid == '3a':
                 for fid in keyframe_indices[1:-2]:
                     kf_type = keyframes[fid]
                     plt.vlines(x=fid, color=keyframe_color[kf_type], linestyle='--', ymin=i-0.3, ymax=i+0.3, label=kf_type)
+
+                # Mark keyframe range label
+                for j in range(0,len(keyframe_indices)-1):
+                    plt.axhline(y=i+0.2, xmin=keyframe_indices[j]-2, xmax=keyframe_indices[j+1]+2, linewidth = 4, color = 'black')
 
 
     plt.figure(1)
@@ -1232,14 +1244,15 @@ if args.eid == '3b':
 
 
 if args.eid == '4b':
-    print('Percentage of time during entire demo - spent on objects, gripper or other parts of workspace')
+    print('Ignoring the black gripper pixels of fixation and focusing on ')
     print('Measure differences between novice and experts - KT demos')
     all_expert_fix, all_novice_fix = {}, {}
     for u, user_dir, all_fix in zip([experts,novices],[expert_dir,novice_dir],[all_expert_fix,all_novice_fix]):
 
         # Get all expert users
-        print("processing Expert Users' Video Demos...")
+        print("processing Expert Users' KT Demos...")
         for i in range(len(u)):
+        # for i in [7]:
             user = u[i]
             print(user) #KT1,KT2
             dir_name = os.listdir(user_dir+user)
@@ -1275,9 +1288,10 @@ if args.eid == '4b':
                 data, gp, model, all_vts = read_json(a+seg)
                 video_file = a+seg+'/fullstream.mp4'
                 keyframes = get_kt_keyframes(all_vts, model, gp, video_file, bag_file)
-                # print(keyframes)
+                if(keyframes==[]):
+                    continue
                 start_idx, end_idx = keyframes[0], keyframes[-1]
-                hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+                hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
                 fixations = filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx,end_idx)
                 # all_fix.append(fixations)
@@ -1375,6 +1389,8 @@ if args.eid == '5a':
                 video_file = a+seg+'/fullstream.mp4'
                 # if(demo_type=='k'):
                 keyframes, keyframe_indices = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
+                if(keyframe_indices==[]):
+                    continue
                 step_kf_indices = get_step_kf_indices(keyframes, keyframe_indices)
                 # if(demo_type=='v'):
                 #     keyframes, keyframe_indices = get_video_keyframe_labels(user, video_file, video_kf_file)
@@ -1425,8 +1441,8 @@ if args.eid == '5a':
                     #         max_val += fixations[o]
 
                     # max_color = target_objects[kf_type][pouring_round][0]
-                    print(fixations_before)
-                    print(fixations_after)
+                    # print(fixations_before)
+                    # print(fixations_after)
                     for key, val in fixations_before.items():
                         if(val==1):
                             print('continuing')
@@ -1445,7 +1461,7 @@ if args.eid == '5a':
                             max_color_after = key
 
                     if(max_val_before>0 and max_val_after>0):
-                        print(kf_type)
+                        print(kf_type, keyframes[fid])
                         print('****max colors:')
                         print(max_color_before, max_color_after)
                         if max_color_after!=max_color_before:

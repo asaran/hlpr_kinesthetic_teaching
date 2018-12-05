@@ -1674,7 +1674,7 @@ def filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, sa
 
 def get_step_kf_indices(keyframes, keyframe_indices):
 
-    valid_types = [   'Reaching', 'Grasping', 'Transport', 'Pouring', 'Return', 'Release']
+    valid_types = ['Reaching', 'Grasping', 'Transport', 'Pouring', 'Return', 'Release']
 
     step_kf_indices = []
     kf_type = keyframes[keyframe_indices[0]]
@@ -1687,6 +1687,8 @@ def get_step_kf_indices(keyframes, keyframe_indices):
         kf_type = keyframes[kf]
         next_kf_type = keyframes[keyframe_indices[i+1]]
 
+
+        # TODO: open could happen in the middle of return or release... not grasping
         if kf_type=='Open' or kf_type=='Close':
             kf_type = 'Grasping'
 
