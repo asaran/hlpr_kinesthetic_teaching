@@ -12,17 +12,25 @@
 # 3. Do long fixations line up with Keyframes? Visualization of fixations across users.
 #       a. Video versus KT demos (expert users)
 #       b. Video versus KT demos (novice users)
+# 4. Do keyframe and video demos match in overall fixations (removing black pixels)?
+#       a. Video versus KT demos (expert users)
+#       b. Video versus KT demos (novice users)
+# 5. Is gaze-based fixation frame different between step KF and non-step KF?
+#       a. KT demos - ref frame before and after KF (expert users)
+#       b. KT demos - ref frame before and after KF (novice users)
+
 
 
 import argparse
 from utils import takeClosest, get_hsv_color_timeline, get_color_name_from_hist, get_kt_keyframes_labels
 from utils import get_video_keyframes, read_json, filter_fixations, get_kt_keyframes, get_video_keyframe_labels
-from utils import filter_fixations_with_timeline
+from utils import filter_fixations_with_timeline, get_step_kf_indices
 import os
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
+import math
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-eid", type=str, default="1a", help='Experiment ID')
@@ -44,8 +52,8 @@ condition_names = {
 }
 
 video_kf_file = 'video_kf.txt'
-# bag_dir = '/home/akanksha/Documents/gaze_for_lfd_study_data/gaze_lfd_user_study/'
-bag_dir = '../../data/bags/'
+bag_dir = '/home/akanksha/Documents/gaze_for_lfd_study_data/gaze_lfd_user_study/'
+# bag_dir = '../../data/bags/'
 
 if args.eid == '1a':
     print('Percentage of time during entire demo - spent on objects or other parts of workspace')
@@ -1219,4 +1227,176 @@ if args.eid == '3b':
     plt.legend(by_label.values(), by_label.keys())
     plt.savefig('vis/'+title)
 
-    
+ 
+
+
+
+if args.eid == '5a':
+    print('Major reference frame before and after a keyframe')
+    print('Measure differences between novice and experts - KT demos')
+    # all_expert_fix, all_novice_fix = {}, {}
+    # target_objects = {
+    #     'Reaching': [['green', 'pasta'], ['yellow', 'pasta']],
+    #     'Grasping': [['green', 'pasta'], ['yellow', 'pasta']],
+    #     'Transport': [['red'], ['blue']],
+    #     'Pouring': [['red', 'pasta'],['blue','pasta']],
+    #     'Return': [['other'],['other']],
+    #     'Release': [['green'],['yellow']]
+    # }
+    expert_target_acc, novice_target_acc = {}, {}
+
+    for u, user_dir, all_fix in zip([experts,novices],[expert_dir,novice_dir],[expert_target_acc,novice_target_acc]):
+
+        # Get all expert/novice users
+        print("processing users' KT Demos...")
+        # for i in range(len(u)):
+        # print(u)
+        for i in range(1):
+            user = u[i]
+            print(user) #KT1,KT2
+            dir_name = os.listdir(user_dir+user)
+
+            a = user_dir+user+'/'+dir_name[0]+'/'+'segments/'
+            d = os.listdir(a)
+
+            exps = order[user]
+
+            bagloc = bag_dir + user + '/bags/'
+            bagfiles = os.listdir(bagloc)
+        
+            for seg in d:
+                print('Segment ', seg)
+                demo_type = exps[0] if int(seg)<=3 else exps[1]
+                # print(demo_type)
+
+                if(int(seg)!=1 and int(seg)!=4):
+                    continue
+
+                if demo_type!='k':
+                    continue
+
+                bag_file = ''
+                if(demo_type=='k'):
+                    for file in bagfiles:
+                        if (file.endswith("kt-p1.bag")):
+                            bag_file = bagloc + file
+                    
+                    if bag_file == '':
+                        print('Bag file does not exist for KT demo, skipping...')
+                        continue
+
+                target_acc = {
+                    'step': [0, 0],
+                    'non-step': [0, 0]
+                }
+
+                data, gp, model, all_vts = read_json(a+seg)
+                video_file = a+seg+'/fullstream.mp4'
+                # if(demo_type=='k'):
+                keyframes, keyframe_indices = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
+                step_kf_indices = get_step_kf_indices(keyframes, keyframe_indices)
+                # if(demo_type=='v'):
+                #     keyframes, keyframe_indices = get_video_keyframe_labels(user, video_file, video_kf_file)
+                # print(keyframes)
+                # Find end of first pouring - start of next pouring
+                # first_grasp = False
+                # pouring_round = 0
+
+                hsv_timeline, saccade_indices, fps = get_hsv_color_timeline(data, video_file)
+
+                # if(demo_type=='k'):
+                # start_idx = 0
+                for fid in keyframe_indices:
+                    # print(fid)
+                    # kf_type = keyframes[fid]
+                    # if(kf_type=='Open'):
+                    #     first_grasp = True
+                    # if kf_type=='Reaching' and first_grasp:
+                    #     pouring_round = 
+                    start_idx = fid - math.floor(fps)
+                    if start_idx<0: 
+                        start_idx = 0
+                    end_idx = fid + math.floor(fps)
+                    if end_idx > len(hsv_timeline):
+                        end_idx = len(hsv_timeline) - 1
+                    fixations_before = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, fid)
+                    fixations_after = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, fid, end_idx)
+
+                    # if kf_type=='Open' or kf_type=='Close':
+                    #     kf_type = 'Grasping'
+                    # if kf_type not in target_objects.keys():
+                    #     start_idx = end_idx
+                    #     continue
+
+                    if fid in step_kf_indices:
+                        kf_type = 'step'
+                    else:
+                        kf_type = 'non-step'
+
+                    # assign max value to the color of the default target of this KF
+                    max_val_before = 0
+                    max_val_after = 0
+                    # TODO: major color of a keyframe could involve 2 hsv ranges
+
+                    # for o in target_objects[kf_type][pouring_round]:
+                    #     # print(o)
+                    #     if(fixations[o]!=-1):
+                    #         max_val += fixations[o]
+
+                    # max_color = target_objects[kf_type][pouring_round][0]
+                    for key, val in fixations_before.items():
+                        if(val!=-1):
+                            continue
+                        if val>max_val_before:
+                            max_val_before = val
+                            max_color_before = key
+
+
+                    for key, val in fixations_after.items():
+                        if(val!=-1):
+                            continue
+                        if val>max_val_after:
+                            max_val_after = val
+                            max_color_after = key
+
+                    if(max_val_before>0 and max_val_after>0):
+                        print(max_color_before, max_color_after)
+                        if max_color_after!=max_color_before:
+                            target_acc[kf_type][0] += 1
+                        target_acc[kf_type][1] += 1
+
+                    # if(max_val>0):
+                    #     if max_color == target_objects[kf_type][pouring_round][0]:
+                    #         target_acc[kf_type][0] += 1
+                    #     target_acc[kf_type][1] += 1
+                    # all_fix.append(fixations)
+                    # One plot showing both novice and expert numbers for objects, other
+                    # start_idx = end_idx
+                # kt_target_acc.append(target_acc)
+                all_fix[user[2:]] = target_acc
+                print(target_acc)
+
+    # print(all_fix)
+    with open('5a_kt_expert.csv', mode='w') as expert_file:
+        expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # kf_names = kt_target_acc[0].keys()
+        kf_names = expert_target_acc[experts[0][2:]].keys()
+        u_kf_names = ['User ID'] + kf_names
+        expert_writer.writerow(u_kf_names)
+        # no_of_colors = length(color_names)
+        for u, acc in expert_target_acc.items():
+            value_list = [acc[i][0]*100.0/acc[i][1]  if acc[i][1]!=0 else -1 for i in kf_names]
+            value_list = [u] + value_list
+            expert_writer.writerow(value_list)
+
+    with open('5a_kt_novice.csv', mode='w') as novice_file:
+        novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # kf_names = kt_target_acc[0].keys()
+        kf_names = novice_target_acc[novices[0][2:]].keys()
+        u_kf_names = ['User ID'] + kf_names
+        novice_writer.writerow(u_kf_names)
+        # no_of_colors = length(color_names)
+        for u, acc in novice_target_acc.items():
+            value_list = [acc[i][0]*100.0/acc[i][1]  if acc[i][1]!=0 else -1 for i in kf_names]
+            value_list = [u] + value_list
+            novice_writer.writerow(value_list)   

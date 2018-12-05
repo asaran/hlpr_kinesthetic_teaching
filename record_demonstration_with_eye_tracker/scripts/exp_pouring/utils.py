@@ -1164,7 +1164,7 @@ def get_hsv_color_timeline(data, video_file):
     saccade_indices = find_saccades(gaze_pts, fps)
     # fixations = find_fixations(gaze_pts, fps, saccade_indices)
 
-    return timeline, saccade_indices
+    return timeline, saccade_indices, fps
 
 
 def filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx):
@@ -1400,3 +1400,36 @@ def filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, sa
     #         fixation_count[f] = -1
 
     return fixation_list, fixation_idx_list
+
+
+
+def get_step_kf_indices(keyframes, keyframe_indices):
+
+    step_kf_indices = []
+    kf_type = keyframes[keyframe_indices[0]]
+    if(kf_type!= keyframes[keyframe_indices[1]] and kf_type in valid_types):
+        step_kf_indices.append(keyframe_indices[0])
+
+    last_kf_type = ''
+    for i in range(1,len(keyframe_indices)-1):
+        kf = keyframe_indices[i]
+        kf_type = keyframes[kf]
+        next_kf_type = keyframes[keyframe_indices[i+1]]
+
+        if kf_type=='Open' or kf_type=='Close':
+            kf_type = 'Grasping'
+
+        if next_kf_type=='Open' or next_kf_type=='Close':
+            next_kf_type = 'Grasping'
+
+        if last_kf_type!=kf_type or kf_type!=next_kf_type:
+            step_kf_indices.append(kf)
+
+        last_kf_type = kf_type
+
+    if next_kf_type!=kf_type:
+        step_kf_indices.append(keyframe_indices[-1])
+
+    return step_kf_indices
+
+
