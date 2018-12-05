@@ -1023,7 +1023,7 @@ if args.eid == '3a':
                 for j in range(1,len(keyframe_indices)):
                     print(keyframe_indices[j-1], keyframe_indices[j])
                     # plt.axhline(y=i+0.2, xmin=keyframe_indices[j-1], xmax=keyframe_indices[j], linewidth = 4, color = 'black')
-                    plt.hlines(y=i+0.2, xmin=keyframe_indices[j-1], xmax=keyframe_indices[j], colors='k')
+                    plt.hlines(y=i+0.2, xmin=keyframe_indices[j-1]+10, xmax=keyframe_indices[j]-10, colors='k')
 
             if(demo_type=='v'):
                 start_idx = keyframe_indices[0] 
@@ -1040,7 +1040,8 @@ if args.eid == '3a':
 
                 # Mark keyframe range label
                 for j in range(0,len(keyframe_indices)-1):
-                    plt.axhline(y=i+0.2, xmin=keyframe_indices[j]-2, xmax=keyframe_indices[j+1]+2, linewidth = 4, color = 'black')
+                    # plt.axhline(y=i+0.2, xmin=keyframe_indices[j]-2, xmax=keyframe_indices[j+1]+2, linewidth = 4, color = 'black')
+                    plt.hlines(y=i+0.2, xmin=keyframe_indices[j]+2, xmax=keyframe_indices[j+1]-2, colors='k')
 
 
     plt.figure(1)
