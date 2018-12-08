@@ -1685,24 +1685,34 @@ def get_step_kf_indices(keyframes, keyframe_indices):
     for i in range(1,len(keyframe_indices)-1):
         kf = keyframe_indices[i]
         kf_type = keyframes[kf]
+        prev_kf_type = keyframes[keyframe_indices[i-1]]
         next_kf_type = keyframes[keyframe_indices[i+1]]
 
-
         # TODO: open could happen in the middle of return or release... not grasping
-        if kf_type=='Open' or kf_type=='Close':
+        if kf_type=='Close':
             kf_type = 'Grasping'
+        if kf_type=='Open':
+            kf_type = 'Release'
 
-        if next_kf_type=='Open' or next_kf_type=='Close':
-            next_kf_type = 'Grasping'
+        if prev_kf_type=='Open':
+            prev_kf_type = 'Release'
+        if prev_kf_type=='Close':
+            prev_kf_type = 'Grasping'
 
-        if last_kf_type!=kf_type or kf_type!=next_kf_type:
+        # the last KF in a sequence of identical labels is a segmentation KF
+        if (prev_kf_type==kf_type and next_kf_type!=kf_type) and (kf_type in valid_types):
             step_kf_indices.append(kf)
 
-        last_kf_type = kf_type
+        if (prev_kf_type!=kf_type and next_kf_type!=kf_type) and (kf_type in valid_types):
+            step_kf_indices.append(kf)
 
-    if next_kf_type!=kf_type:
+        # last_kf_type = kf_type
+
+    # if next_kf_type!=kf_type:
+    #     step_kf_indices.append(keyframe_indices[-1])
+
+    kf_type = keyframes[keyframe_indices[-1]]
+    if(kf_type!= keyframes[keyframe_indices[-2]] and kf_type in valid_types):
         step_kf_indices.append(keyframe_indices[-1])
 
     return step_kf_indices
-
-
