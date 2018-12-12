@@ -1242,18 +1242,21 @@ if args.eid == '3b':
     plt.savefig('vis/'+title)
 
 
+if args.eid == '4a':
+    print('Ignoring the black gripper pixels of fixation and focusing on task objects only')
+    print('Measure differences between novice and experts - video demos on task objects only')
 
 
 if args.eid == '4b':
-    print('Ignoring the black gripper pixels of fixation and focusing on ')
+    print('Ignoring the black gripper pixels of fixation and focusing on task objects only')
     print('Measure differences between novice and experts - KT demos')
     all_expert_fix, all_novice_fix = {}, {}
     for u, user_dir, all_fix in zip([experts,novices],[expert_dir,novice_dir],[all_expert_fix,all_novice_fix]):
 
         # Get all expert users
         print("processing Expert Users' KT Demos...")
-        for i in range(len(u)):
-        # for i in [7]:
+        # for i in range(len(u)):
+        for i in [7]:
             user = u[i]
             print(user) #KT1,KT2
             dir_name = os.listdir(user_dir+user)
@@ -1288,13 +1291,15 @@ if args.eid == '4b':
 
                 data, gp, model, all_vts = read_json(a+seg)
                 video_file = a+seg+'/fullstream.mp4'
-                keyframes = get_kt_keyframes(all_vts, model, gp, video_file, bag_file)
+                # keyframes = get_kt_keyframes(all_vts, model, gp, video_file, bag_file)
+                keyframes, all_keyframe_indices = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
+                print keyframes
                 if(keyframes==[]):
                     continue
-                start_idx, end_idx = keyframes[0], keyframes[-1]
+                start_idx, end_idx = all_keyframe_indices[0], all_keyframe_indices[-1]
                 hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
-                fixations = filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx,end_idx)
+                fixations = filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, saccade_indices, keyframe_indices, keyframes)
                 # all_fix.append(fixations)
                 all_fix[user[2:]] = fixations
                 # One plot showing both novice and expert numbers for objects, other
