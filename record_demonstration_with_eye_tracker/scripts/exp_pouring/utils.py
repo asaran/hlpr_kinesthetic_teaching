@@ -1468,7 +1468,7 @@ def filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices,
     return fixation_count
 
 
-def filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx):
+def filter_fixation_counts(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx):
     # print('filtering fixations')
     vidcap = cv2.VideoCapture(video_file)
     fps = vidcap.get(cv2.CAP_PROP_FPS)
@@ -1476,6 +1476,15 @@ def filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, sac
     success, img = vidcap.read()
 
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    # video = cv2.VideoWriter('../../data/gaze_pouring_gaze_filtered_user6_exp3.avi',fourcc,fps,(1920,1080))
+
+    # video_fixation_count = {
+    #   'red': 0,
+    #   'yellow': 0,
+    #   'blue': 0,
+    #   'green': 0,
+    #   'other': 0
+    # }
 
     KT_fixation_count = {
         'red': 0,
@@ -1488,6 +1497,11 @@ def filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, sac
     }
 
     fixation_count = KT_fixation_count
+
+    # if demo_type=='k':
+    #   fixation_count = KT_fixation_count
+    # else if demo_type=='v':
+    #   fixation_count = video_fixation_count
 
 
 
@@ -1525,8 +1539,152 @@ def filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, sac
         gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
 
         img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+        # hsv = img_hsv[gaze_coords[1]][gaze_coords[0]]
+
+        color_name, color_value = get_color_name_from_hist(gaze_coords, img_hsv, radius)
+        window.append(color_name)
+        if(len(window)>win_size):
+            del window[0]
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        # if(count in saccade_indices):
+        #     cv2.putText(img, 'SACCADE!!', (800, 250), font, 1.8, (192,192,192), 5, cv2.LINE_AA)
+
+        # else:
+        if total_count not in saccade_indices:
+            # might be a fixation
+            fixation = True
+            for det_c in window:
+                if det_c!=color_name:
+                    fixation=False
+            if(fixation):
+                # cv2.putText(img, '*****FIXATION****', (1430, 500), font, 1.8, color_value, 5, cv2.LINE_AA)
+                fixation_count[color_name] += 1
+
+        # if(color_name!=''):
+        # #     print(color_name)
+        #   cv2.putText(img, color_name, (1430, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
+
+        # # print(hsv)
+        # cv2.putText(img, str(hsv), (230, 250), font, 1.8, (255, 255, 0), 5, cv2.LINE_AA)
+
+        # cv2.circle(img,gaze_coords, 25, (255,255,0), 3)
+        # cv2.circle(img,gaze_coords, radius, (0,165,255), 3)
+        # video.write(img)
+        # cv2.imwrite('../../data/imgs_pouring/'+str(count)+'.png', img)
+        # cv2.imwrite('video_imgs/'+str(count)+'.png', img)
+        valid_count += 1
+        total_count += 1
+        success, img = vidcap.read()
+
+    cv2.destroyAllWindows()
+    # video.release()
+
+    for f in fixation_count:
+        if(valid_count==0):
+            fixation_count[f] = -1
+
+    return fixation_count
+
+
+def filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, saccade_indices, keyframe_indices, keyframes):
+    # print('filtering fixations')
+    vidcap = cv2.VideoCapture(video_file)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    # print fps     #25 fps
+    success, img = vidcap.read()
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+
+    KT_fixation_count = {
+        'red': 0,
+        'yellow': 0,
+        'blue': 0,
+        'green': 0,
+        'black': 0,
+        'other': 0,
+        'pasta': 0
+    }
+
+    fixation_count = KT_fixation_count
+
+    target_objects = {
+        'Reaching': ['green','yellow'],
+        'Grasping': ['green', 'yellow'],
+        'Open': ['green', 'yellow'],
+        'Close': ['green', 'yellow'],
+        'Transport': ['red', 'blue'],
+        'Pouring': ['red', 'blue'],
+        'Return': ['red','blue'],
+        'Release': ['red','blue']
+    }
+    start_idx, end_idx = keyframe_indices[0], keyframe_indices[-1]
+
+    all_ts = sorted(gp.keys())
+    total_count = 0
+    imgs = []       # list of image frames
+    frame2ts = []   # corresponding list of video time stamp values in microseconds
+    window = []
+    win_size = 3
+    radius = 100
+    valid_count = 0
+    current_action = 'Reaching'
+    # print(start_idx, end_idx)
+    while success:  
+        # print(count)
+        if total_count<start_idx or total_count>end_idx:
+            total_count += 1
+            success, img = vidcap.read()
+            continue
+
+        first_act = True
+
+        # get current KF segment
+        if demo_type=='k':
+            for i in range(0,len(keyframe_indices)-1):
+                if total_count>keyframe_indices[i] and\
+                    total_count<=keyframe_indices[i+1]:
+                    if keyframes[keyframe_indices[i+1]]!= 'Other':
+                        current_action = keyframes[keyframe_indices[i+1]]
+        elif demo_type == 'v':
+            for i in range(1,len(keyframe_indices)-1):
+                if total_count>=keyframe_indices[i] and\
+                    total_count<keyframe_indices[i+1]:
+                    current_action = keyframes[keyframe_indices[i]]
+
+
+        if current_action == 'Open' and first_act==True and demo_type=='k':
+            first_act = False
+
+        if current_action == 'Release' and first_act==True and demo_type=='v':
+            first_act = False
+
+        frame_ts = int((total_count/fps)*1000000)
+        frame2ts.append(frame_ts)
+
+        less = [a for a in all_vts if a<=frame_ts]
+        idx = len(less)-1
+
+        if idx<len(model):
+            m,c = model[idx]
+        else:
+            m,c = model[len(model)-1]
+        ts = m*frame_ts + c
+
+        tracker_ts,_ = takeClosest(all_ts,ts)
+
+        gaze = gp[tracker_ts]
+        gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
+
+        img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 
         color_name, color_value = get_color_name_from_hist_ignore_black(gaze_coords, img_hsv, radius)
+        if color_name == 'pasta':
+            if first_act:
+                color_name = target_objects[current_action][0]
+            else:
+                color_name = target_objects[current_action][1]
+
         window.append(color_name)
         if(len(window)>win_size):
             del window[0]
