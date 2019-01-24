@@ -81,8 +81,8 @@ if args.eid == '1a':
                 print('Segment ', seg)
                 demo_type = exps[0] if int(seg)<=3 else exps[1]
 
-                if(int(seg)!=1 and int(seg)!=4):
-                    continue
+                # if(int(seg)!=1 and int(seg)!=4):
+                #     continue
 
                 if demo_type!='v':
                     continue
@@ -95,14 +95,14 @@ if args.eid == '1a':
                 start_idx, end_idx = keyframe_indices['Start'][0], keyframe_indices['Stop'][0]
                 fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
                 # all_fix.append(fixations)
-                all_fix[user[2:]] = fixations
+                all_fix[user[2:]+'_'+str(seg)] = fixations
             # One plot showing both novice and expert numbers for objects, other
 
     # print(all_expert_fix)
     # print(all_novice_fix)
-    with open('1a_video_expert.csv', mode='w') as expert_file:
+    with open('1a_video_expert_3trials.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_expert_fix[experts[0][2:]].keys()
+        color_names = all_expert_fix[experts[0][2:]+'_1'].keys()
         u_color_names = ['User ID'] + color_names
         expert_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
@@ -111,9 +111,9 @@ if args.eid == '1a':
             value_list = [us] + value_list
             expert_writer.writerow(value_list)
 
-    with open('1a_video_novice.csv', mode='w') as novice_file:
+    with open('1a_video_novice_3trials.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_novice_fix[novices[0][2:]].keys()
+        color_names = all_novice_fix[novices[0][2:]+'_1'].keys()
         u_color_names = ['User ID'] + color_names
         novice_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
@@ -148,18 +148,25 @@ if args.eid == '1b':
                 print('Segment ', seg)
                 demo_type = exps[0] if int(seg)<=3 else exps[1]
 
-                if(int(seg)!=1 and int(seg)!=4):
-                    continue
+                # if(int(seg)!=1 and int(seg)!=4):
+                #     continue
 
                 if demo_type!='k':
                     continue
 
                 bag_file = ''
                 for file in bagfiles:
-                    if (file.endswith("kt-p1.bag")):
+                    # print(file)
+                    if (file.endswith("kt-p1.bag") and (int(seg)==1 or int(seg)==4)):
                         bag_file = bagloc + file
+                    elif (file.endswith("kt-p2.bag") and (int(seg)==2 or int(seg)==5)):
+                        bag_file = bagloc + file
+                    elif (file.endswith("kt-p3.bag") and (int(seg)==3 or int(seg)==6)):
+                        bag_file = bagloc + file
+
                 
                 if bag_file == '':
+                    # print(user, seg)
                     print('Bag file does not exist for KT demo, skipping...')
                     continue
 
@@ -172,13 +179,15 @@ if args.eid == '1b':
 
                 fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx,end_idx)
                 # all_fix.append(fixations)
-                all_fix[user[2:]] = fixations
+                all_fix[user[2:]+'_'+str(seg)] = fixations
+                # print(user[2:]+'_'+str(seg))
                 # One plot showing both novice and expert numbers for objects, other
 
     # print(all_fix)
-    with open('1b_kt_expert.csv', mode='w') as expert_file:
+    with open('1b_kt_expert_3trials.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_expert_fix[experts[0][2:]].keys()
+        # color_names = all_expert_fix[experts[0][2:]+'_4'].keys()
+        color_names = all_expert_fix[all_expert_fix.keys()[0]].keys()
         u_color_names = ['User ID'] + color_names
         expert_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
@@ -187,9 +196,10 @@ if args.eid == '1b':
             value_list = [us] + value_list
             expert_writer.writerow(value_list)
 
-    with open('1b_kt_novice.csv', mode='w') as novice_file:
+    with open('1b_kt_novice_3trials.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        color_names = all_novice_fix[novices[0][2:]].keys()
+        # color_names = all_novice_fix[novices[0][2:]+'_1'].keys()
+        color_names = all_novice_fix[all_novice_fix.keys()[0]].keys()
         u_color_names = ['User ID'] + color_names
         novice_writer.writerow(u_color_names)
         # no_of_colors = length(color_names)
@@ -233,8 +243,8 @@ if args.eid == '2a':
             print('Segment ', seg)
             demo_type = exps[0] if int(seg)<=3 else exps[1]
 
-            if(int(seg)!=1 and int(seg)!=4):
-                continue
+            # if(int(seg)!=1 and int(seg)!=4):
+            #     continue
 
             # if demo_type!='k':
             #     continue
@@ -242,7 +252,13 @@ if args.eid == '2a':
             bag_file = ''
             if(demo_type=='k'):
                 for file in bagfiles:
-                    if (file.endswith("kt-p1.bag")):
+                    # if (file.endswith("kt-p1.bag")):
+                    #     bag_file = bagloc + file
+                    if (file.endswith("kt-p1.bag") and (int(seg)==1 or int(seg)==4)):
+                        bag_file = bagloc + file
+                    elif (file.endswith("kt-p2.bag") and (int(seg)==2 or int(seg)==5)):
+                        bag_file = bagloc + file
+                    elif (file.endswith("kt-p3.bag") and (int(seg)==3 or int(seg)==6)):
                         bag_file = bagloc + file
                 
                 if bag_file == '':
@@ -309,7 +325,7 @@ if args.eid == '2a':
                     # all_fix.append(fixations)
                     # One plot showing both novice and expert numbers for objects, other
                     start_idx = end_idx
-                kt_target_acc[user[2:]] = target_acc
+                kt_target_acc[user[2:]+'_'+str(seg)] = target_acc
 
             if(demo_type=='v'):
                 # start_idx = 0
@@ -347,12 +363,13 @@ if args.eid == '2a':
                     # One plot showing both novice and expert numbers for objects, other
                     # start_idx = end_idx
                 # print(experts[0][2])
-                video_target_acc[user[2:]] = target_acc
+                video_target_acc[user[2:]+'_'+str(seg)] = target_acc
 
     # print(all_fix)
-    with open('2a_kt_expert.csv', mode='w') as expert_file:
+    with open('2a_kt_expert_3trials.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = kt_target_acc[experts[0][2:]].keys()
+        # kf_names = kt_target_acc[experts[0][2:]].keys()
+        kf_names = kt_target_acc[kt_target_acc.keys()[0]].keys()
         u_kf_names = ['User ID'] + kf_names
         expert_writer.writerow(u_kf_names)
         
@@ -362,9 +379,10 @@ if args.eid == '2a':
             value_list = [u] + value_list
             expert_writer.writerow(value_list)
 
-    with open('2a_video_expert.csv', mode='w') as expert_file:
+    with open('2a_video_expert_3trials.csv', mode='w') as expert_file:
         expert_writer = csv.writer(expert_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        kf_names = video_target_acc[experts[0][2:]].keys()
+        # kf_names = video_target_acc[experts[0][2:]].keys()
+        kf_names = video_target_acc[video_target_acc.keys()[0]].keys()
         u_kf_names = ['User ID'] + kf_names
         expert_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
@@ -408,8 +426,8 @@ if args.eid == '2b':
             print('Segment ', seg)
             demo_type = exps[0] if int(seg)<=3 else exps[1]
 
-            if(int(seg)!=1 and int(seg)!=4):
-                continue
+            # if(int(seg)!=1 and int(seg)!=4):
+            #     continue
 
             # if demo_type!='k':
             #     continue
@@ -417,9 +435,17 @@ if args.eid == '2b':
             bag_file = ''
             if(demo_type=='k'):
                 for file in bagfiles:
-                    if (file.endswith("kt-p1.bag")):
+                    # if (file.endswith("kt-p1.bag")):
+                    #     bag_file = bagloc + file
+                
+                    if (file.endswith("kt-p1.bag") and (int(seg)==1 or int(seg)==4)):
+                        bag_file = bagloc + file
+                    elif (file.endswith("kt-p2.bag") and (int(seg)==2 or int(seg)==5)):
+                        bag_file = bagloc + file
+                    elif (file.endswith("kt-p3.bag") and (int(seg)==3 or int(seg)==6)):
                         bag_file = bagloc + file
                 
+
                 if bag_file == '':
                     print('Bag file does not exist for KT demo, skipping...')
                     continue
@@ -487,7 +513,7 @@ if args.eid == '2b':
                     # One plot showing both novice and expert numbers for objects, other
                     start_idx = end_idx
                 # kt_target_acc.append(target_acc)
-                kt_target_acc[user[2:]] = target_acc
+                kt_target_acc[user[2:]+'_'+str(seg)] = target_acc
 
             if(demo_type == 'v'):
                 # start_idx = 0
@@ -526,14 +552,15 @@ if args.eid == '2b':
                     # One plot showing both novice and expert numbers for objects, other
                     # start_idx = end_idx
 
-                video_target_acc[user[2:]] = target_acc
+                video_target_acc[user[2:]+'_'+str(seg)] = target_acc
                 # video_target_acc.append(target_acc)
 
     # print(all_fix)
-    with open('2b_kt_novice.csv', mode='w') as novice_file:
+    with open('2b_kt_novice_3trials.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         # kf_names = kt_target_acc[0].keys()
-        kf_names = kt_target_acc[novices[4][2:]].keys()
+        # kf_names = kt_target_acc[novices[4][2:]].keys()
+        kf_names = kt_target_acc[kt_target_acc.keys()[0]].keys()
         u_kf_names = ['User ID'] + kf_names
         novice_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
@@ -542,10 +569,11 @@ if args.eid == '2b':
             value_list = [u] + value_list
             novice_writer.writerow(value_list)
 
-    with open('2b_video_novice.csv', mode='w') as novice_file:
+    with open('2b_video_novice_3trials.csv', mode='w') as novice_file:
         novice_writer = csv.writer(novice_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         # kf_names = video_target_acc[0].keys()
-        kf_names = video_target_acc[novices[4][2:]].keys()
+        # kf_names = video_target_acc[novices[4][2:]].keys()
+        kf_names = video_target_acc[video_target_acc.keys()[0]].keys()
         u_kf_names = ['User ID'] + kf_names
         novice_writer.writerow(u_kf_names)
         # no_of_colors = length(color_names)
@@ -557,7 +585,7 @@ if args.eid == '2b':
 
 
 if args.eid == '2e':
-    print('Perecentage accuarcy to predict reference frame per keyframe for second demo')
+    print('Percentage accuarcy to predict reference frame per keyframe for second demo')
     print('Measure differences between novice and experts - KT demos')
     # all_expert_fix, all_novice_fix = {}, {}
     target_objects = {
@@ -1439,8 +1467,8 @@ if args.eid == '5a':
                 demo_type = exps[0] if int(seg)<=3 else exps[1]
                 # print(demo_type)
 
-                if(int(seg)!=1 and int(seg)!=4):
-                    continue
+                # if(int(seg)!=1 and int(seg)!=4):
+                #     continue
 
                 if demo_type!='k':
                     continue
@@ -1448,7 +1476,13 @@ if args.eid == '5a':
                 bag_file = ''
                 if(demo_type=='k'):
                     for file in bagfiles:
-                        if (file.endswith("kt-p1.bag")):
+                        # if (file.endswith("kt-p1.bag")):
+                        #     bag_file = bagloc + file
+                         if (file.endswith("kt-p1.bag") and (int(seg)==1 or int(seg)==4)):
+                            bag_file = bagloc + file
+                        elif (file.endswith("kt-p2.bag") and (int(seg)==2 or int(seg)==5)):
+                            bag_file = bagloc + file
+                        elif (file.endswith("kt-p3.bag") and (int(seg)==3 or int(seg)==6)):
                             bag_file = bagloc + file
                     
                     if bag_file == '':
