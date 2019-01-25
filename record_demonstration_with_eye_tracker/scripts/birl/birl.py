@@ -194,15 +194,20 @@ class BIRL():
                 o2w = 1000000
             l1 = gaze[0]/(gaze[0]+gaze[1])
             l2 = gaze[1]/(gaze[0]+gaze[1])
+            if(l2!=0):
+                ratio1 = l1/l2
+            if(l1!=0):
+                ratio2 = l2/l1
             if(l1==0):
-                l1 = 1000000
+                ratio2 = 1000000
             if(l2==0):
-                l2 = 1000000
+                ratio1 = 1000000
             # gaze_term = abs(l1/l2 - o1w/o2w) + abs(l2/l1 - o2w/o1w) 
-            gaze_term = (o2w>o1w and l2<l1)*(l1/l2) + (o1w>o2w and l1<l2)*(l2/l1)
+            # gaze_term = (o2w>o1w and l2<l1)*(l1/l2) + (o1w>o2w and l1<l2)*(l2/l1)
+            gaze_term = (o2w>o1w and l2<l1)*(ratio1) + (o1w>o2w and l1<l2)*(ratio2)
             # print('gaze_term: ',gaze_term,o1w,o2w,l1,l2, gaze[0], gaze[1])
 
-            log_sum += self.beta * placement_reward - scipy.misc.logsumexp(Z_exponents) + gaze_term
+            log_sum += self.beta * placement_reward - scipy.misc.logsumexp(Z_exponents) - gaze_term
             #print "likelihood:", np.exp(self.beta * placement_reward - scipy.misc.logsumexp(Z_exponents))
             #plt.show()
             # print('log_sum: ', log_sum)
