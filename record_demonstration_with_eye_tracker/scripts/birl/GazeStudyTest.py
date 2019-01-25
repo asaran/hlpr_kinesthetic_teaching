@@ -72,10 +72,23 @@ if __name__=="__main__":
     skip = 25
     num_test = 100
 
-    exp = 'plate' # or 'bowl'
-    demo_type = 'KT' # 'video' or 'KT'
+    exp = 'plate' # 'plate' or 'bowl'
+    demo_type = 'video' # 'video' or 'KT'
+    distractors = False
+    use_gaze = True
+
+    #give three demos in different positions
+    num_demos = 5
 
     num_objects = 2 #plate and bowl
+
+    obj2_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
+    obj3_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
+    obj4_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
+
+    demo_purple = []
+    demo_orange = []
+
     #object weights are for center, top left, top right, bottom left, bottom right
     if(demo_type=='video'):
         if exp=='bowl':
@@ -86,6 +99,19 @@ if __name__=="__main__":
             demo_bowl = [[0.588,0.605],[0.587,0.609],[0.591,0.396],[0.598, 0.711], [0.594,0.724]]
             demo_spoon = [[0.552,0.663],[0.536,0.638],[0.551,0.42], [0.532,0.738], [0.549,0.731]]
             demo_gaze = [[6.854,13.306],[1.96,42.156],[0.0,49.253], [0.0,24.58], [0.0,13.978]]
+
+            #user 2,12,19,20
+            # demo_plate = [[0.437,0.668],[0.436,0.77],[0.446,0.776],[0.443,0.72],[0.439,0.663]]
+            # demo_bowl = [[0.588,0.605],[0.598, 0.711],[0.593,0.717],[0.607,0.663],[0.6,0.602]]
+            # demo_spoon = [[0.552,0.663], [0.532,0.738],[0.55,0.73],[0.555,0.678],[0.547,0.629]]
+            # demo_gaze = [[6.854,13.306], [0.0,24.58],[0.497,16.915],[3.33,51.428],[0,12.5]]
+
+            # demo_plate = [[0.436,0.77]]
+            # demo_bowl = [[0.598, 0.711]]
+            # demo_spoon = [[0.532,0.738]]
+            # demo_gaze = [[0.0,24.58]]
+
+
         #obj2_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
         elif exp=='plate':
             obj1_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #bowl: equal weight on top left and bottom left rbf results in placement directly to left of object
@@ -96,27 +122,69 @@ if __name__=="__main__":
             demo_spoon = [[0.507, 0.638],[0.514,0.641],[0.508,0.435],[0.532,0.738],[0.495,0.746]]
             demo_gaze = [[23.42,5.948],[10.577,6.73],[13.861,0.0],[20.382,0.0],[30.0,0.0]]
 
+            #user 2,12,19,20
+            # demo_plate = [[0.438,0.670],[0.435,0.761],[0.431,0.774],[0.423,0.731]]
+            # demo_bowl = [[0.591,0.611],[0.598,0.715],[0.585,0.717],[0.596,0.669]]
+            # demo_spoon = [[0.507, 0.638],[0.532,0.738],[0.513,0.744],[0.498,0.698]]
+            # demo_gaze = [[23.42,5.948],[20.382,0.0],[38.27,0],[16.949,3.051]]
+
+            #user 12 only
+            # demo_plate = [[0.435,0.761]]
+            # demo_bowl = [[0.598,0.715]]
+            # demo_spoon = [[0.532,0.738]]
+            # demo_gaze = [[20.382,0.0]]
+
     if(demo_type=='KT'):
         if exp=='bowl':
 
             obj1_weights = np.array([0.0, 0.0, 0.5, 0.0, 0.5]) #bowl: equal weight on top left and bottom left rbf results in placement directly to left of object
             obj0_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #plate
 
-            demo_plate = [[0.574,0.685],[0.554,0.683],[0.552,0.7],[0.533,0.694],[0.566,0.683]] #[0.569,0.683]
-            demo_bowl = [[0.353,0.729],[0.339,0.719],[0.317,0.759],[0.349,0.743],[0.333,0.719]] #[0.338,0.728]
-            demo_spoon = [[0.448,0.783],[0.434,0.683],[0.398,0.765],[0.424,0.735],[0.427,0.755]] #[0.418,0.704]
-            demo_gaze = [[1.353,4.963],[0,5.847],[0.643,11.568],[0.393,21.335],[6.406,12.278]] #[0.888,7.988]
-        #obj2_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
+            #user 2,12,19,14,20
+            demo_plate = [[0.574,0.685],[0.552,0.7],[0.533,0.694],[0.554,0.683],[0.566,0.683]] #
+            demo_bowl = [[0.353,0.729],[0.317,0.759],[0.349,0.743],[0.339,0.719],[0.333,0.719]] #
+            demo_spoon = [[0.448,0.783],[0.398,0.765],[0.424,0.735],[0.434,0.683],[0.427,0.755]] #
+            demo_gaze = [[1.353,4.963],[0.643,11.568],[0.393,21.335],[0,5.847],[6.406,12.278]] #
+
+            #user 2,12,19,20 #14
+            # demo_plate = [[0.574,0.685],[0.552,0.7],[0.533,0.694],[0.566,0.683]] #[0.554,0.683],
+            # demo_bowl = [[0.353,0.729],[0.317,0.759],[0.349,0.743],[0.333,0.719]] #[0.339,0.719],
+            # demo_spoon = [[0.448,0.783],[0.398,0.765],[0.424,0.735],[0.427,0.755]] #[0.434,0.683],
+            # demo_gaze = [[1.353,4.963],[0.643,11.568],[0.393,21.335],[6.406,12.278]] #[0,5.847],
+
+            #user 12 only
+            # demo_plate = [[0.547, 0.741]]# #[[0.552,0.7]]
+            # demo_bowl = [[0.311, 0.757]]# #[[0.317,0.759]]
+            # demo_spoon = [[0.4, 0.757]]# #[[0.398,0.765]]
+            # demo_gaze = [[0.643,11.568]]# #[[0.643,11.568]]
+        
         elif exp=='plate':
             obj1_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #bowl: equal weight on top left and bottom left rbf results in placement directly to left of object
             obj0_weights = np.array([0.0, 0.5, 0.0, 0.5, 0.0]) #plate
 
-            demo_plate = [[0.568,0.687],[0.58,0.683],[0.554,0.698],[0.574,0.706],[0.585,0.693]] #[0.571,0.687]
-            demo_bowl = [[0.352,0.733],[0.355,0.720],[0.321,0.757],[0.351,0.752],[0.351,0.713]] #[0.343,0.724]
-            demo_spoon = [[0.460,0.694],[0.491,0.709],[0.419,0.726],[0.473,0.754],[0.485,0.715]] #[0.473,0.704]
-            demo_gaze = [[14.286,0.672],[11.538,0],[8.128,6.676],[26.466,10.977],[9.191,0]] #[20.0,32.174]
+            #user 2,12,19,14,20
+            demo_plate = [[0.568,0.687],[0.554,0.698],[0.574,0.706],[0.58,0.683],[0.585,0.693]] #
+            demo_bowl = [[0.352,0.733],[0.321,0.757],[0.351,0.752],[0.355,0.720],[0.351,0.713]] #
+            demo_spoon = [[0.460,0.694],[0.419,0.726],[0.473,0.754],[0.491,0.709],[0.485,0.715]] #
+            demo_gaze = [[14.286,0.672],[8.128,6.676],[26.466,10.977],[11.538,0],[9.191,0]] #
 
-    obj_weights = np.concatenate((obj0_weights, obj1_weights))
+
+            #user 2,12,19,20 #14
+            # demo_plate = [[0.568,0.687],[0.554,0.698],[0.574,0.706],[0.585,0.693]] #[0.58,0.683],
+            # demo_bowl = [[0.352,0.733],[0.321,0.757],[0.351,0.752],[0.351,0.713]] #[0.355,0.720],
+            # demo_spoon = [[0.460,0.694],[0.419,0.726],[0.473,0.754],[0.485,0.715]] #[0.491,0.709],
+            # demo_gaze = [[14.286,0.672],[8.128,6.676],[26.466,10.977],[9.191,0]] #[11.538,0],
+
+            #user 12 only
+            # demo_plate = [[0.53, 0.724]] #[[0.554,0.698]]
+            # demo_bowl = [[0.31, 0.755]] #[[0.321,0.757]]
+            # demo_spoon = [[0.417, 0.728]] #[[0.419,0.726]]
+            # demo_gaze = [[8.128,6.676]] #[[8.128,6.676]]
+
+    if distractors:
+        obj_weights = np.concatenate((obj0_weights, obj1_weights, obj2_weights, obj3_weights, obj4_weights))
+    else:
+        obj_weights = np.concatenate((obj0_weights, obj1_weights))
     abs_weights = np.array([0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0]) # no absolute placement preferences
@@ -126,8 +194,7 @@ if __name__=="__main__":
 
     birl = birl.BIRL(num_obj_weights, num_abs_weights, beta, num_steps, step_std, burn, skip)
 
-    #give three demos in different positions
-    num_demos = 5
+    
 
 
     for i in range(num_demos):
@@ -138,7 +205,10 @@ if __name__=="__main__":
         # best_x, reward = demo_rbf.estimate_best_placement()
         # best_x = np.array([0.5, 0.5]) + np.random.random(2)*0.1
 
-        obj_centers = np.array([demo_plate[i],demo_bowl[i]])
+        if distractors:
+            obj_centers = np.array([demo_plate[i],demo_bowl[i],demo_purple[i],demo_orange[i]])
+        else:
+            obj_centers = np.array([demo_plate[i],demo_bowl[i]])
         look_times = np.array(demo_gaze[i])
         best_x = np.array(demo_spoon[i]) 
         true_rbf = autils.RbfComplexReward(obj_centers, obj_weights, abs_weights)
@@ -151,7 +221,7 @@ if __name__=="__main__":
 
 
     #run birl to get MAP estimate
-    birl.run_inference(gaze=True)
+    birl.run_inference(gaze=use_gaze)
     # birl.run_gaze_inference()
 
 
