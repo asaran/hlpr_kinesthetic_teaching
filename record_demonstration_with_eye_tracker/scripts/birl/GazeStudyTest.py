@@ -73,7 +73,7 @@ if __name__=="__main__":
     skip = 25
     num_test = 100
 
-    exp = 'plate' # 'plate' or 'bowl'
+    exp = 'bowl' # 'plate' or 'bowl'
     demo_type = 'video' # 'video' or 'KT'
     distractors = False
     use_gaze = True
@@ -224,8 +224,8 @@ if __name__=="__main__":
     #run birl to get MAP estimate
     birl.run_inference(gaze=use_gaze)
     # birl.run_gaze_inference()
-    with open('birl_params.pkl', 'wb') as handle:
-        pickle.dump(a, handle, protocol=pkl.HIGHEST_PROTOCOL)
+    with open('data/birl_params.pkl', 'wb') as handle:
+        pkl.dump(birl, handle, protocol=pkl.HIGHEST_PROTOCOL)
 
     #print out the map reward weights
     map_obj_wts, map_abs_wts = birl.get_map_params()

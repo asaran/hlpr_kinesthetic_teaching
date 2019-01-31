@@ -16,7 +16,7 @@ class BIRLPlacement():
         self.birl_params = None
 
     def load_learned_params():
-        with open('birl_params.pkl', 'rb') as handle:
+        with open('data/birl_params.pkl', 'rb') as handle:
             self.birl_params = pickle.load(handle)
 
     def get_place_loc(config):
