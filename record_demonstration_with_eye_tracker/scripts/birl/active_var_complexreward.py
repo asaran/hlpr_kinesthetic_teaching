@@ -10,7 +10,6 @@ import active_utils
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 def generate_random_configuration(num_centers):
     return np.random.rand(num_centers,2)
 
@@ -58,6 +57,15 @@ def calculate_placement_loss(config, hyp_params, map_params):
     #plt.show()
     return np.linalg.norm(hyp_placement - map_placement)
 
+
+def get_best_placement(config, map_params):
+    #calculate reward for map placement under hyp_reward
+    map_obj_weights, map_abs_weights = map_params
+    map_reward_fn = active_utils.RbfComplexReward(config, map_obj_weights, map_abs_weights)
+    #active_utils.visualize_reward(map_reward_fn, "map reward")
+    #get optimal placement under map reward function and new configuration
+    map_placement, _ = map_reward_fn.estimate_best_placement()
+    return map_placement
 
 def calculate_var(alpha, config, birl):
     param_chain = birl.get_mcmc_chain()

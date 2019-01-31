@@ -11,6 +11,7 @@ import active_var_complexreward as active_var
 import sys
 
 from copy import deepcopy
+import pickle as pkl
 
 def test_placements(true_reward, num_test):
     test_rbfs = []
@@ -223,7 +224,8 @@ if __name__=="__main__":
     #run birl to get MAP estimate
     birl.run_inference(gaze=use_gaze)
     # birl.run_gaze_inference()
-
+    with open('birl_params.pkl', 'wb') as handle:
+        pickle.dump(a, handle, protocol=pkl.HIGHEST_PROTOCOL)
 
     #print out the map reward weights
     map_obj_wts, map_abs_wts = birl.get_map_params()
