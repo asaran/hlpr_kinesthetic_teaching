@@ -74,21 +74,23 @@ if __name__=="__main__":
     num_test = 100
 
     exp = 'bowl' # 'plate' or 'bowl'
-    demo_type = 'video' # 'video' or 'KT'
-    distractors = False
-    use_gaze = True
+    demo_type = 'KT' # 'video' or 'KT'
+    distractors = True
+    use_gaze = False
 
     #give three demos in different positions
-    num_demos = 5
-
-    num_objects = 2 #plate and bowl
+    num_demos = 1
+    if distractors:
+        num_objects = 4#2 #plate and bowl
+    else:
+        num_objects = 2
 
     obj2_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
     obj3_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
-    obj4_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
+    # obj4_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
 
-    demo_purple = []
-    demo_orange = []
+    # demo_purple = []
+    # demo_orange = []
 
     #object weights are for center, top left, top right, bottom left, bottom right
     if(demo_type=='video'):
@@ -96,21 +98,35 @@ if __name__=="__main__":
             obj1_weights = np.array([0.0, 0.5, 0.0, 0.5, 0.0]) #bowl: equal weight on top left and bottom left rbf results in placement directly to left of object
             obj0_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #plate
 
+            #user 2,12,19,14,20
             demo_plate = [[0.437,0.668],[0.421,0.665],[0.428,0.459],[0.436,0.77], [0.425,0.777]]
             demo_bowl = [[0.588,0.605],[0.587,0.609],[0.591,0.396],[0.598, 0.711], [0.594,0.724]]
             demo_spoon = [[0.552,0.663],[0.536,0.638],[0.551,0.42], [0.532,0.738], [0.549,0.731]]
             demo_gaze = [[6.854,13.306],[1.96,42.156],[0.0,49.253], [0.0,24.58], [0.0,13.978]]
 
+            if(distractors):
+                demo_orange = [[0.332,0.716]]
+                demo_purple = [[0.678,0.709]]
+                demo_gaze = [[0.0,24.58,0.0,0.0],[],[],[],[]]
+        
             #user 2,12,19,20
             # demo_plate = [[0.437,0.668],[0.436,0.77],[0.446,0.776],[0.443,0.72],[0.439,0.663]]
             # demo_bowl = [[0.588,0.605],[0.598, 0.711],[0.593,0.717],[0.607,0.663],[0.6,0.602]]
             # demo_spoon = [[0.552,0.663], [0.532,0.738],[0.55,0.73],[0.555,0.678],[0.547,0.629]]
             # demo_gaze = [[6.854,13.306], [0.0,24.58],[0.497,16.915],[3.33,51.428],[0,12.5]]
 
+            
+
+            # user 12 only
             # demo_plate = [[0.436,0.77]]
             # demo_bowl = [[0.598, 0.711]]
             # demo_spoon = [[0.532,0.738]]
             # demo_gaze = [[0.0,24.58]]
+            
+            # if(distractors):
+            #     demo_orange = [[0.332,0.716]]
+            #     demo_purple = [[0.678,0.709]]
+            #     demo_gaze = [[0.0,24.58,0.0,0.0]]
 
 
         #obj2_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #distractor
@@ -118,10 +134,16 @@ if __name__=="__main__":
             obj1_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #bowl: equal weight on top left and bottom left rbf results in placement directly to left of object
             obj0_weights = np.array([0.0, 0.0, 0.5, 0.0, 0.5]) #plate
 
+            #user 2,12,19,14,20
             demo_plate = [[0.438,0.670],[0.428,0.657],[0.427,0.461],[0.435,0.761],[0.423,0.777]]
             demo_bowl = [[0.591,0.611],[0.582,0.604],[0.508,0.435],[0.598,0.715],[0.593,0.720]]
             demo_spoon = [[0.507, 0.638],[0.514,0.641],[0.508,0.435],[0.532,0.738],[0.495,0.746]]
             demo_gaze = [[23.42,5.948],[10.577,6.73],[13.861,0.0],[20.382,0.0],[30.0,0.0]]
+
+            if(distractors):
+                demo_orange = [[],[0.332,0.716],[]]
+                demo_purple = [[],[0.678,0.709],[]]
+                demo_gaze = [[],[0.0,24.58,0.0,0.0],[]]
 
             #user 2,12,19,20
             # demo_plate = [[0.438,0.670],[0.435,0.761],[0.431,0.774],[0.423,0.731]]
@@ -135,6 +157,12 @@ if __name__=="__main__":
             # demo_spoon = [[0.532,0.738]]
             # demo_gaze = [[20.382,0.0]]
 
+            # if(distractors):
+            #     demo_orange = [[0.333,0.724]]
+            #     demo_purple = [[0.675,0.707]]
+            #     demo_gaze = [[20.382,0.0,1.274,0.0]]
+
+
     if(demo_type=='KT'):
         if exp=='bowl':
 
@@ -147,6 +175,11 @@ if __name__=="__main__":
             demo_spoon = [[0.448,0.783],[0.398,0.765],[0.424,0.735],[0.434,0.683],[0.427,0.755]] #
             demo_gaze = [[1.353,4.963],[0.643,11.568],[0.393,21.335],[0,5.847],[6.406,12.278]] #
 
+            if(distractors):
+                demo_orange = [[],[0.332,0.716]]
+                demo_purple = [[],[0.678,0.709]]
+                demo_gaze = [[],[0.0,24.58,0.0,0.0]]
+
             #user 2,12,19,20 #14
             # demo_plate = [[0.574,0.685],[0.552,0.7],[0.533,0.694],[0.566,0.683]] #[0.554,0.683],
             # demo_bowl = [[0.353,0.729],[0.317,0.759],[0.349,0.743],[0.333,0.719]] #[0.339,0.719],
@@ -158,6 +191,12 @@ if __name__=="__main__":
             # demo_bowl = [[0.311, 0.757]]# #[[0.317,0.759]]
             # demo_spoon = [[0.4, 0.757]]# #[[0.398,0.765]]
             # demo_gaze = [[0.643,11.568]]# #[[0.643,11.568]]
+
+            # if(distractors):
+            #     demo_orange = [[0.724, 0.720]]
+            #     demo_purple = [[0.195,0.75]]
+            #     demo_gaze = [[0.643,11.568,1.799,0.77]]
+
         
         elif exp=='plate':
             obj1_weights = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) #bowl: equal weight on top left and bottom left rbf results in placement directly to left of object
@@ -169,6 +208,10 @@ if __name__=="__main__":
             demo_spoon = [[0.460,0.694],[0.419,0.726],[0.473,0.754],[0.491,0.709],[0.485,0.715]] #
             demo_gaze = [[14.286,0.672],[8.128,6.676],[26.466,10.977],[11.538,0],[9.191,0]] #
 
+            if(distractors):
+                demo_orange = [[0.332,0.716]]
+                demo_purple = [[0.678,0.709]]
+                demo_gaze = [[0.0,24.58,0.0,0.0]]
 
             #user 2,12,19,20 #14
             # demo_plate = [[0.568,0.687],[0.554,0.698],[0.574,0.706],[0.585,0.693]] #[0.58,0.683],
@@ -182,8 +225,13 @@ if __name__=="__main__":
             # demo_spoon = [[0.417, 0.728]] #[[0.419,0.726]]
             # demo_gaze = [[8.128,6.676]] #[[8.128,6.676]]
 
+            # if(distractors):
+            #     demo_orange = [[0.718, 0.717]]
+            #     demo_purple = [[0.198, 0.748]]
+            #     demo_gaze = [[8.128,6.676,0.0,0.435]]
+
     if distractors:
-        obj_weights = np.concatenate((obj0_weights, obj1_weights, obj2_weights, obj3_weights, obj4_weights))
+        obj_weights = np.concatenate((obj0_weights, obj1_weights, obj2_weights, obj3_weights))
     else:
         obj_weights = np.concatenate((obj0_weights, obj1_weights))
     abs_weights = np.array([0.0, 0.0, 0.0,
@@ -207,7 +255,7 @@ if __name__=="__main__":
         # best_x = np.array([0.5, 0.5]) + np.random.random(2)*0.1
 
         if distractors:
-            obj_centers = np.array([demo_plate[i],demo_bowl[i],demo_purple[i],demo_orange[i]])
+            obj_centers = np.array([demo_plate[i],demo_bowl[i],demo_orange[i],demo_purple[i]])
         else:
             obj_centers = np.array([demo_plate[i],demo_bowl[i]])
         look_times = np.array(demo_gaze[i])

@@ -8,7 +8,7 @@ chosen_colors = []
 # mouse callback function
 def pick_color(event,x,y,flags,param):
     if event == cv2.EVENT_LBUTTONDOWN:
-        print(x,y, image_hsv.shape[0], image_hsv.shape[1], x/float(image_hsv.shape[1]), y/float(image_hsv.shape[0]))
+        # print(x,y, image_hsv.shape[0], image_hsv.shape[1], x/float(image_hsv.shape[1]), y/float(image_hsv.shape[0]))
         pixel = image_hsv[y,x]
 
         chosen_colors.append(pixel)
@@ -16,7 +16,7 @@ def pick_color(event,x,y,flags,param):
         #you might want to adjust the ranges(+-10, etc):
         upper =  np.array([pixel[0] + 10, pixel[1] + 10, pixel[2] + 40])
         lower =  np.array([pixel[0] - 10, pixel[1] - 10, pixel[2] - 40])
-        # print(pixel, lower, upper)
+        print(pixel, lower, upper)
 
         image_mask = cv2.inRange(image_hsv,lower,upper)
         cv2.imshow("mask",image_mask)

@@ -186,26 +186,56 @@ class BIRL():
 
             # gaze term
             # for i in range(2):
-            if sum(hyp_obj_weights)!= 0:
-                o1w = sum(hyp_obj_weights[:5])/(sum(hyp_obj_weights))
-                o2w = sum(hyp_obj_weights[5:])/(sum(hyp_obj_weights))
-            else:
-                o1w = 1000000
-                o2w = 1000000
-            l1 = gaze[0]/(gaze[0]+gaze[1])
-            l2 = gaze[1]/(gaze[0]+gaze[1])
-            if(l2!=0):
-                ratio1 = l1/l2
-            if(l1!=0):
-                ratio2 = l2/l1
-            if(l1==0):
-                ratio2 = 1000000
-            if(l2==0):
-                ratio1 = 1000000
-            # gaze_term = abs(l1/l2 - o1w/o2w) + abs(l2/l1 - o2w/o1w) 
-            # gaze_term = (o2w>o1w and l2<l1)*(l1/l2) + (o1w>o2w and l1<l2)*(l2/l1)
-            gaze_term = (o2w>o1w and l2<l1)*(ratio1) + (o1w>o2w and l1<l2)*(ratio2)
-            # print('gaze_term: ',gaze_term,o1w,o2w,l1,l2, gaze[0], gaze[1])
+
+            # if sum(hyp_obj_weights)!= 0:
+            #     o1w = sum(hyp_obj_weights[:5])/(sum(hyp_obj_weights))
+            #     o2w = sum(hyp_obj_weights[5:])/(sum(hyp_obj_weights))
+            # else:
+            #     o1w = 1000000
+            #     o2w = 1000000
+            # l1 = gaze[0]/(gaze[0]+gaze[1])
+            # l2 = gaze[1]/(gaze[0]+gaze[1])
+            # if(l2!=0):
+            #     ratio1 = l1/l2
+            # if(l1!=0):
+            #     ratio2 = l2/l1
+            # if(l1==0):
+            #     ratio2 = 1000000
+            # if(l2==0):
+            #     ratio1 = 1000000
+            # # gaze_term = abs(l1/l2 - o1w/o2w) + abs(l2/l1 - o2w/o1w) 
+            # # gaze_term = (o2w>o1w and l2<l1)*(l1/l2) + (o1w>o2w and l1<l2)*(l2/l1)
+            # gaze_term = (o2w>o1w and l2<l1)*(ratio1) + (o1w>o2w and l1<l2)*(ratio2)
+            # # print('gaze_term: ',gaze_term,o1w,o2w,l1,l2, gaze[0], gaze[1])
+
+            # print(gaze)
+            num_objects = len(hyp_obj_weights)/5
+            # print(hyp_obj_weights)
+            obj_weights = [0] * num_objects
+            look_times = [0] * num_objects
+            for i in range(num_objects):
+                if sum(hyp_obj_weights)!= 0:
+                    obj_weights[i] = sum(hyp_obj_weights[i*5:(i+1)*5])/(sum(hyp_obj_weights))
+                    
+                else:
+                    obj_weights[i] = 1000000
+
+                look_times[i] = gaze[i]/sum(gaze)
+
+            gaze_term = 0
+            for i in range(num_objects):
+                for j in range(num_objects):
+                    if i==j:
+                        continue
+                    else:
+                        indicator_term = (obj_weights[j]>obj_weights[i] and look_times[j]<look_times[i]) #\
+                                         # or (obj_weights[j]<obj_weights[i] and look_times[j]>look_times[i])
+                        if(look_times[j]!=0):
+                            ratio = look_times[i]/look_times[j]
+                        else:
+                            ratio = 1000000
+                        gaze_term += indicator_term * ratio
+                    
 
             log_sum += self.beta * placement_reward - scipy.misc.logsumexp(Z_exponents) - gaze_term
             #print "likelihood:", np.exp(self.beta * placement_reward - scipy.misc.logsumexp(Z_exponents))

@@ -5,7 +5,11 @@ import ast
 import gzip
 from utils import get_hsv_color_timeline, get_color_name_from_hist
 
-my_dir = '../../data/reward/experts/KT12/fsvr3a5/segments/4/'
+# my_dir = '../../data/reward/experts/KT12/fsvr3a5/segments/2/'
+# my_dir = '../../data/pouring/experts/KT12/bmzotwj/segments/4/'
+my_dir = '/home/akanksha/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/eye_tracker/KT7/l7clkqc/segments/1/'
+# my_dir = '../../data/RSS videos/user12_KT2/'
+
 # with open(my_dir+"livedata.json", "r") as myfile:
 # 	data=myfile.readlines()
 
@@ -82,7 +86,31 @@ print fps 	#25 fps
 success, img = vidcap.read()
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-video = cv2.VideoWriter('../../data/user12_KT_placement2.avi',fourcc,fps,(1920,1080))
+video = cv2.VideoWriter('../../data/RSS videos/user7_KT_pouring.avi',fourcc,fps,(1920,1080))
+
+#placement
+# object_name={
+# 	'green': 'Ladle',
+# 	'blue' : 'Ladle',
+# 	'yellow': 'Yellow Bowl',
+# 	'red': 'Red Plate',
+# 	'white': 'Table',
+# 	'black': 'Robot Gripper',
+# 	'other': 'Background',
+# 	'pasta': 'Yellow Bowl'
+# }
+
+#pouring
+object_name={
+	'green': 'Green Cup',
+	'blue' : 'Blue Bowl',
+	'yellow': 'Yellow Cup',
+	'red': 'Red Bowl',
+	'white': 'Table',
+	'black': 'Robot Gripper',
+	'other': 'Background',
+	'pasta': 'Pasta'
+}
 
 all_ts = sorted(gp.keys())
 count = 0
@@ -132,7 +160,11 @@ while success:
 			if det_c!=color_name:
 				fixation=False
 		if(fixation):
+			cv2.putText(img, '*****FIXATION****', (600, 150), font, 1.8, (0,0,0), 8, cv2.LINE_AA)
 			cv2.putText(img, '*****FIXATION****', (600, 150), font, 1.8, color_value, 5, cv2.LINE_AA)
+			cv2.putText(img, object_name[color_name], (700, 250), font, 1.8, (0,0,0), 8, cv2.LINE_AA)
+			cv2.putText(img, object_name[color_name], (700, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
+			
 
 	# if(color_name!=''):
 	# 	print(color_name)
