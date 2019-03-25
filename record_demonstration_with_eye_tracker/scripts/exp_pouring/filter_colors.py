@@ -34,7 +34,7 @@ while(1):
 	grey_frame[:,:] = (169,169,169)
 
 	# Bitwise-AND mask and original image
-	res = cv2.bitwise_and(frame,frame, mask= mask)
+	res = cv2.bitwise_and(frame,frame, mask=mask)
 
 	# resize frames for display
 	frame = cv2.resize(frame, (640, 480)) 

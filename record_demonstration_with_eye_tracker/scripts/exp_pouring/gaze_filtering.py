@@ -5,7 +5,11 @@ import ast
 import gzip
 from utils import get_hsv_color_timeline, get_color_name_from_hist
 
-my_dir = '../../data/pouring/experts/KT19/he6ao2m/segments/1/'
+# my_dir = '../../data/reward/experts/KT12/fsvr3a5/segments/2/'
+# my_dir = '../../data/pouring/experts/KT12/bmzotwj/segments/4/'
+my_dir = '/home/akanksha/gaze_lfd_ws/src/hlpr_kinesthetic_teaching/record_demonstration_with_eye_tracker/data/eye_tracker/KT7/l7clkqc/segments/1/'
+# my_dir = '../../data/RSS videos/user12_KT2/'
+
 # with open(my_dir+"livedata.json", "r") as myfile:
 # 	data=myfile.readlines()
 
@@ -74,7 +78,7 @@ def takeClosest(myList, myNumber):
 
 
 video_file = my_dir+'fullstream.mp4'
-hsv_timeline, saccade_indices = get_hsv_color_timeline(data, video_file)
+hsv_timeline, saccade_indices, _ = get_hsv_color_timeline(data, video_file)
 
 vidcap = cv2.VideoCapture(video_file)
 fps = vidcap.get(cv2.CAP_PROP_FPS)
@@ -82,7 +86,31 @@ print fps 	#25 fps
 success, img = vidcap.read()
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-video = cv2.VideoWriter('../../data/gaze_filtering_demo.avi',fourcc,fps,(1920,1080))
+video = cv2.VideoWriter('../../data/RSS videos/user7_KT_pouring.avi',fourcc,fps,(1920,1080))
+
+#placement
+# object_name={
+# 	'green': 'Ladle',
+# 	'blue' : 'Ladle',
+# 	'yellow': 'Yellow Bowl',
+# 	'red': 'Red Plate',
+# 	'white': 'Table',
+# 	'black': 'Robot Gripper',
+# 	'other': 'Background',
+# 	'pasta': 'Yellow Bowl'
+# }
+
+#pouring
+object_name={
+	'green': 'Green Cup',
+	'blue' : 'Blue Bowl',
+	'yellow': 'Yellow Cup',
+	'red': 'Red Bowl',
+	'white': 'Table',
+	'black': 'Robot Gripper',
+	'other': 'Background',
+	'pasta': 'Pasta'
+}
 
 all_ts = sorted(gp.keys())
 count = 0
@@ -123,7 +151,8 @@ while success:
 
 	font = cv2.FONT_HERSHEY_SIMPLEX
 	if(count in saccade_indices):
-		cv2.putText(img, 'SACCADE!!', (800, 250), font, 1.8, (192,192,192), 5, cv2.LINE_AA)
+		# cv2.putText(img, 'SACCADE!!', (800, 250), font, 1.8, (192,192,192), 5, cv2.LINE_AA)
+		print 'saccade'
 	else:
 		# might be a fixation
 		fixation = True
@@ -131,14 +160,18 @@ while success:
 			if det_c!=color_name:
 				fixation=False
 		if(fixation):
-			cv2.putText(img, '*****FIXATION****', (1430, 500), font, 1.8, color_value, 5, cv2.LINE_AA)
+			cv2.putText(img, '*****FIXATION****', (600, 150), font, 1.8, (0,0,0), 8, cv2.LINE_AA)
+			cv2.putText(img, '*****FIXATION****', (600, 150), font, 1.8, color_value, 5, cv2.LINE_AA)
+			cv2.putText(img, object_name[color_name], (700, 250), font, 1.8, (0,0,0), 8, cv2.LINE_AA)
+			cv2.putText(img, object_name[color_name], (700, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
+			
 
-	if(color_name!=''):
+	# if(color_name!=''):
 	# 	print(color_name)
-		cv2.putText(img, color_name, (1430, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
+		# cv2.putText(img, color_name, (1430, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
 
 	# print(hsv)
-	cv2.putText(img, str(hsv), (230, 250), font, 1.8, (255, 255, 0), 5, cv2.LINE_AA)
+	# cv2.putText(img, str(hsv), (230, 250), font, 1.8, (255, 255, 0), 5, cv2.LINE_AA)
 
 	cv2.circle(img,gaze_coords, 25, (255,255,0), 3)
 	cv2.circle(img,gaze_coords, radius, (0,165,255), 3)

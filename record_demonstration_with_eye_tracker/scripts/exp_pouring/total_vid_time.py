@@ -5,7 +5,7 @@ import cv2
 order = {'KT1':'kv','KT2':'kv','KT3':'vk','KT4':'vk','KT5':'kv','KT6':'kv','KT7':'vk','KT8':'vk','KT9':'kv','KT10':'kv',\
         'KT11':'vk','KT12':'vk','KT13':'kv','KT14':'kv','KT15':'vk','KT16':'vk','KT17':'kv','KT18':'vk','KT19':'vk','KT20':'vk'}
 
-main_dir = '../../data/pouring/all_users/'    #IRL
+main_dir = '../../data/reward/all_users/'    #IRL
 users = os.listdir(main_dir)
 print(users)
 
@@ -27,8 +27,8 @@ for i in range(len(users)):
         print('Segment ', seg)
         demo_type = exps[0] if int(seg)<=3 else exps[1]
 
-        if(int(seg)!=1 and int(seg)!=4):
-            continue
+        # if(int(seg)!=1 and int(seg)!=4):
+        #     continue
 
         data, gp, model, all_vts = read_json(a+seg)
         video_file = a+seg+'/fullstream.mp4'

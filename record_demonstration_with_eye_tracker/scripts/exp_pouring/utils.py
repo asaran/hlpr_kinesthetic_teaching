@@ -963,7 +963,7 @@ def get_color_name(hsv):
 
     color_ranges = {
         'red':   [[161,140,70],[184,255,255]],
-        'green': [[36,64,28],[70,155,220]],
+        'green': [[36,64,28],[110,155,220]], #[[36,64,28],[70,155,220]]
         'yellow': [[0,90,100],[32,180,180]],
         'blue': [[94,111,34],[118,165,136]],
         'black': [[0,0,0],[180,255,40]],
@@ -1073,6 +1073,92 @@ def get_color_name_from_hist(gaze_coords, img_hsv, radius):
     return max_color, value
 
 
+def get_color_name_from_hist_ignore_black(gaze_coords, img_hsv, radius):
+    color_hist ={
+        'blue': 0,
+        'yellow': 0,
+        'red': 0,
+        'green': 0,
+        'black': 0,
+        'pasta': 0,
+        'other': 0
+    }
+
+    color_val = {
+        'black': (0,0,0),
+        'red': (0,0,255),
+        'green': (0,255,0),
+        'yellow': (0,255,255),
+        'pasta': (0,255,255),
+        'blue': (255,0,0),
+        'other': (192,192,192)
+    }
+
+    x, y = gaze_coords
+    hsv = img_hsv[y-1][x-1]
+    h,s,v = hsv
+    color = ''
+    value = None
+
+    # pixels in the image which lie inside a circle of given radius
+    min_x, max_x = max(0,x-radius), min(1920, x+radius)
+    min_y, max_y = max(0,y-radius), min(1080, y+radius)
+    for i,j in zip(range(min_x,max_x), range(min_y,max_y)):
+        d = math.pow((i-x),2)+ math.pow((j-y),2)
+        if d<= math.pow(radius,2):
+            curr_hsv= img_hsv[j][i]
+            current_color, _ = get_color_name(curr_hsv)
+            if current_color in color_hist.keys():
+                color_hist[current_color] += 1
+            else:
+                color_hist['other'] += 1
+
+    max_val = 0
+    max_color = ''
+    for key,val in color_hist.items():
+        # print(val)
+        if val>max_val:
+            max_val = val
+            max_color = key
+
+
+    # tie break black with other colors
+    second_max_val = 0
+    second_max_color = ''
+    if max_color=='black':
+        # print('***other***')
+        for key,val in color_hist.items():
+            if key=='black':
+                continue
+            else:
+                if val>second_max_val:
+                    second_max_val = val
+                    second_max_color = key
+        if second_max_val>50:
+            max_color = second_max_color
+            max_val = second_max_val
+
+
+    # do not assign other color if relevant colors are present
+    second_max_val = 0
+    second_max_color = ''
+    if max_color=='other':
+        # print('***other***')
+        for key,val in color_hist.items():
+            if key=='other':
+                continue
+            else:
+                if val>second_max_val:
+                    second_max_val = val
+                    second_max_color = key
+        if second_max_val>5:
+            max_color = second_max_color
+            max_val = second_max_val
+        # print(max_color, second_max_val)
+
+    value = color_val[max_color]
+    return max_color, value
+
 # returns a list of rgb color values for gaze point for each video frame
 def get_hsv_color_timeline(data, video_file):
     timeline = []
@@ -1164,7 +1250,101 @@ def get_hsv_color_timeline(data, video_file):
     saccade_indices = find_saccades(gaze_pts, fps)
     # fixations = find_fixations(gaze_pts, fps, saccade_indices)
 
-    return timeline, saccade_indices
+    return timeline, saccade_indices, fps
+
+
+# returns a list of rgb color values for gaze point for each video frame, tie breaking black with next best color
+def get_hsv_color_timeline_ignore_black(data, video_file):
+    timeline = []
+    # fixations = {'red': [], 'yellow':[], 'green':[], 'other':[]}
+    vid2ts = {}     # dictionary mapping video time to time stamps in json
+    right_eye_pd, left_eye_pd, gp = {}, {}, {} # dicts mapping ts to pupil diameter and gaze points (2D) for both eyes
+
+    for d in data:
+        if 'vts' in d and d['s']==0:
+            if d['vts'] == 0:
+                vid2ts[d['vts']] = d['ts']
+            else:
+                #vid_time = d['ts'] - d['vts']
+                vid2ts[d['vts']] = d['ts']
+
+        # TODO: if multiple detections for same time stamp?
+        if 'pd' in d and d['s']==0 and d['eye']=='right':
+            right_eye_pd[d['ts']] = d['pd']
+        if 'pd' in d and d['s']==0 and d['eye']=='left':
+            left_eye_pd[d['ts']] = d['pd']
+
+        if 'gp' in d and d['s']==0 :
+            gp[d['ts']] = d['gp']   #list of 2 coordinates
+    print('read json')
+
+
+    # map vts to ts
+    all_vts = sorted(vid2ts.keys())
+    a = all_vts[0]
+    model = []
+    for i in range(1,len(all_vts)):
+        points = [(a,vid2ts[a]),(all_vts[i],vid2ts[all_vts[i]])]
+        x_coords, y_coords = zip(*points)
+        A = vstack([x_coords,ones(len(x_coords))]).T
+        m, c = lstsq(A, y_coords)[0]
+        model.append((m,c))
+        a = all_vts[i]
+
+    vidcap = cv2.VideoCapture(video_file)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    success, img = vidcap.read()
+    # img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    print('reading video file')
+
+    last_fixation_color =(0,0,0)
+    all_ts = sorted(gp.keys())
+    count = 0
+    imgs = []       # list of image frames
+    frame2ts = []   # corresponding list of video time stamp values in microseconds
+    gaze_pts = []
+
+    while success:  
+        # print(count)  
+        img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)   
+        frame_ts = int((count/fps)*1000000)
+        frame2ts.append(frame_ts)
+
+        less = [a for a in all_vts if a<=frame_ts]
+        idx = len(less)-1
+
+        if idx<len(model):
+            m,c = model[idx]
+        else:
+            m,c = model[len(model)-1]
+        ts = m*frame_ts + c
+        tracker_ts,  _ = takeClosest(all_ts,ts)
+        gaze = gp[tracker_ts]
+        gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
+        gaze_pts.append(gaze_coords)
+
+        h,s,v = img_hsv[gaze_coords[1]-1][gaze_coords[0]-1]
+        # b, g, r = img[gaze_coords[1]][gaze_coords[0]]
+        # instant_color = [r/255.0,g/255.0,b/255.0]
+        instant_color = [h, s, v]
+        timeline.append(instant_color)
+
+        # last_gaze_pt = gaze_coords
+
+        count += 1
+        success, img = vidcap.read()
+
+        
+
+    vidcap.release()
+    cv2.destroyAllWindows()
+
+    saccade_indices = []
+    # if not keep_saccades:
+    saccade_indices = find_saccades(gaze_pts, fps)
+    # fixations = find_fixations(gaze_pts, fps, saccade_indices)
+
+    return timeline, saccade_indices, fps
 
 
 def filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx):
@@ -1288,6 +1468,253 @@ def filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices,
     return fixation_count
 
 
+def filter_fixation_counts(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx):
+    # print('filtering fixations')
+    vidcap = cv2.VideoCapture(video_file)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    # print fps     #25 fps
+    success, img = vidcap.read()
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    # video = cv2.VideoWriter('../../data/gaze_pouring_gaze_filtered_user6_exp3.avi',fourcc,fps,(1920,1080))
+
+    # video_fixation_count = {
+    #   'red': 0,
+    #   'yellow': 0,
+    #   'blue': 0,
+    #   'green': 0,
+    #   'other': 0
+    # }
+
+    KT_fixation_count = {
+        'red': 0,
+        'yellow': 0,
+        'blue': 0,
+        'green': 0,
+        'black': 0,
+        'other': 0,
+        'pasta': 0
+    }
+
+    fixation_count = KT_fixation_count
+
+    # if demo_type=='k':
+    #   fixation_count = KT_fixation_count
+    # else if demo_type=='v':
+    #   fixation_count = video_fixation_count
+
+
+
+    all_ts = sorted(gp.keys())
+    total_count = 0
+    imgs = []       # list of image frames
+    frame2ts = []   # corresponding list of video time stamp values in microseconds
+    window = []
+    win_size = 3
+    radius = 100
+    valid_count = 0
+    # print(start_idx, end_idx)
+    while success:  
+        # print(count)
+        if total_count<start_idx or total_count>end_idx:
+            total_count += 1
+            success, img = vidcap.read()
+            continue
+
+        frame_ts = int((total_count/fps)*1000000)
+        frame2ts.append(frame_ts)
+
+        less = [a for a in all_vts if a<=frame_ts]
+        idx = len(less)-1
+
+        if idx<len(model):
+            m,c = model[idx]
+        else:
+            m,c = model[len(model)-1]
+        ts = m*frame_ts + c
+
+        tracker_ts,_ = takeClosest(all_ts,ts)
+
+        gaze = gp[tracker_ts]
+        gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
+
+        img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+        # hsv = img_hsv[gaze_coords[1]][gaze_coords[0]]
+
+        color_name, color_value = get_color_name_from_hist(gaze_coords, img_hsv, radius)
+        window.append(color_name)
+        if(len(window)>win_size):
+            del window[0]
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        # if(count in saccade_indices):
+        #     cv2.putText(img, 'SACCADE!!', (800, 250), font, 1.8, (192,192,192), 5, cv2.LINE_AA)
+
+        # else:
+        if total_count not in saccade_indices:
+            # might be a fixation
+            fixation = True
+            for det_c in window:
+                if det_c!=color_name:
+                    fixation=False
+            if(fixation):
+                # cv2.putText(img, '*****FIXATION****', (1430, 500), font, 1.8, color_value, 5, cv2.LINE_AA)
+                fixation_count[color_name] += 1
+
+        # if(color_name!=''):
+        # #     print(color_name)
+        #   cv2.putText(img, color_name, (1430, 250), font, 1.8, color_value, 5, cv2.LINE_AA)
+
+        # # print(hsv)
+        # cv2.putText(img, str(hsv), (230, 250), font, 1.8, (255, 255, 0), 5, cv2.LINE_AA)
+
+        # cv2.circle(img,gaze_coords, 25, (255,255,0), 3)
+        # cv2.circle(img,gaze_coords, radius, (0,165,255), 3)
+        # video.write(img)
+        # cv2.imwrite('../../data/imgs_pouring/'+str(count)+'.png', img)
+        # cv2.imwrite('video_imgs/'+str(count)+'.png', img)
+        valid_count += 1
+        total_count += 1
+        success, img = vidcap.read()
+
+    cv2.destroyAllWindows()
+    # video.release()
+
+    for f in fixation_count:
+        if(valid_count==0):
+            fixation_count[f] = -1
+
+    return fixation_count
+
+
+def filter_fixations_ignore_black(video_file, model, gp, all_vts, demo_type, saccade_indices, keyframe_indices, keyframes):
+    # print('filtering fixations')
+    vidcap = cv2.VideoCapture(video_file)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    # print fps     #25 fps
+    success, img = vidcap.read()
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+
+    KT_fixation_count = {
+        'red': 0,
+        'yellow': 0,
+        'blue': 0,
+        'green': 0,
+        'black': 0,
+        'other': 0,
+        'pasta': 0
+    }
+
+    fixation_count = KT_fixation_count
+
+    target_objects = {
+        'Reaching': ['green','yellow'],
+        'Grasping': ['green', 'yellow'],
+        'Open': ['green', 'yellow'],
+        'Close': ['green', 'yellow'],
+        'Transport': ['red', 'blue'],
+        'Pouring': ['red', 'blue'],
+        'Return': ['red','blue'],
+        'Release': ['red','blue']
+    }
+    start_idx, end_idx = keyframe_indices[0], keyframe_indices[-1]
+
+    all_ts = sorted(gp.keys())
+    total_count = 0
+    imgs = []       # list of image frames
+    frame2ts = []   # corresponding list of video time stamp values in microseconds
+    window = []
+    win_size = 3
+    radius = 100
+    valid_count = 0
+    current_action = 'Reaching'
+    # print(start_idx, end_idx)
+    while success:  
+        # print(count)
+        if total_count<start_idx or total_count>end_idx:
+            total_count += 1
+            success, img = vidcap.read()
+            continue
+
+        first_act = True
+
+        # get current KF segment
+        if demo_type=='k':
+            for i in range(0,len(keyframe_indices)-1):
+                if total_count>keyframe_indices[i] and\
+                    total_count<=keyframe_indices[i+1]:
+                    if keyframes[keyframe_indices[i+1]]!= 'Other':
+                        current_action = keyframes[keyframe_indices[i+1]]
+        elif demo_type == 'v':
+            for i in range(1,len(keyframe_indices)-1):
+                if total_count>=keyframe_indices[i] and\
+                    total_count<keyframe_indices[i+1]:
+                    current_action = keyframes[keyframe_indices[i]]
+
+
+        if current_action == 'Open' and first_act==True and demo_type=='k':
+            first_act = False
+
+        if current_action == 'Release' and first_act==True and demo_type=='v':
+            first_act = False
+
+        frame_ts = int((total_count/fps)*1000000)
+        frame2ts.append(frame_ts)
+
+        less = [a for a in all_vts if a<=frame_ts]
+        idx = len(less)-1
+
+        if idx<len(model):
+            m,c = model[idx]
+        else:
+            m,c = model[len(model)-1]
+        ts = m*frame_ts + c
+
+        tracker_ts,_ = takeClosest(all_ts,ts)
+
+        gaze = gp[tracker_ts]
+        gaze_coords = (int(gaze[0]*1920), int(gaze[1]*1080))
+
+        img_hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+
+        color_name, color_value = get_color_name_from_hist_ignore_black(gaze_coords, img_hsv, radius)
+        if color_name == 'pasta':
+            if first_act:
+                color_name = target_objects[current_action][0]
+            else:
+                color_name = target_objects[current_action][1]
+
+        window.append(color_name)
+        if(len(window)>win_size):
+            del window[0]
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
+        if total_count not in saccade_indices:
+            # might be a fixation
+            fixation = True
+            for det_c in window:
+                if det_c!=color_name:
+                    fixation=False
+            if(fixation):
+                fixation_count[color_name] += 1
+
+        valid_count += 1
+        total_count += 1
+        success, img = vidcap.read()
+
+    cv2.destroyAllWindows()
+
+    for f in fixation_count:
+        if(valid_count!=0):
+            fixation_count[f] = fixation_count[f]*100.0/valid_count
+        else: 
+            fixation_count[f] = -1
+
+    return fixation_count
+
+
 def filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx):
     # print('filtering fixations')
     vidcap = cv2.VideoCapture(video_file)
@@ -1400,3 +1827,50 @@ def filter_fixations_with_timeline(video_file, model, gp, all_vts, demo_type, sa
     #         fixation_count[f] = -1
 
     return fixation_list, fixation_idx_list
+
+
+
+def get_step_kf_indices(keyframes, keyframe_indices):
+
+    valid_types = ['Reaching', 'Grasping', 'Transport', 'Pouring', 'Return', 'Release']
+
+    step_kf_indices = []
+    kf_type = keyframes[keyframe_indices[0]]
+    if(kf_type!= keyframes[keyframe_indices[1]] and kf_type in valid_types):
+        step_kf_indices.append(keyframe_indices[0])
+
+    last_kf_type = ''
+    for i in range(1,len(keyframe_indices)-1):
+        kf = keyframe_indices[i]
+        kf_type = keyframes[kf]
+        prev_kf_type = keyframes[keyframe_indices[i-1]]
+        next_kf_type = keyframes[keyframe_indices[i+1]]
+
+        # TODO: open could happen in the middle of return or release... not grasping
+        if kf_type=='Close':
+            kf_type = 'Grasping'
+        if kf_type=='Open':
+            kf_type = 'Release'
+
+        if prev_kf_type=='Open':
+            prev_kf_type = 'Release'
+        if prev_kf_type=='Close':
+            prev_kf_type = 'Grasping'
+
+        # the last KF in a sequence of identical labels is a segmentation KF
+        if (prev_kf_type==kf_type and next_kf_type!=kf_type) and (kf_type in valid_types):
+            step_kf_indices.append(kf)
+
+        if (prev_kf_type!=kf_type and next_kf_type!=kf_type) and (kf_type in valid_types):
+            step_kf_indices.append(kf)
+
+        # last_kf_type = kf_type
+
+    # if next_kf_type!=kf_type:
+    #     step_kf_indices.append(keyframe_indices[-1])
+
+    kf_type = keyframes[keyframe_indices[-1]]
+    if(kf_type!= keyframes[keyframe_indices[-2]] and kf_type in valid_types):
+        step_kf_indices.append(keyframe_indices[-1])
+
+    return step_kf_indices
