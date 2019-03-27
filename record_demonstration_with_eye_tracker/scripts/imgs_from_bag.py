@@ -10,6 +10,7 @@ bag_gaze = rosbag.Bag('/home/akanksha/Documents/rss 2019 data/KT7/bags/kt7-s-p1.
 
 bridge = CvBridge()
 
+count = 0
 save_dir =  '/home/akanksha/Documents/rss 2019 data/KT7/imgs/p1'
 for topic, msg, t in bag_gaze.read_messages(topics=['/kinect/qhd/image_color_rect/compressed']):
 	if topic == "/kinect/qhd/image_color_rect/compressed":
@@ -17,8 +18,9 @@ for topic, msg, t in bag_gaze.read_messages(topics=['/kinect/qhd/image_color_rec
 			cv_image = bridge.compressed_imgmsg_to_cv2(msg, "bgr8")
 		except CvBridgeError, e:
 			print e
+		count = count + 1
 		timestr = "%.6f" % msg.header.stamp.to_sec()
-		image_name = str(save_dir)+"/left_"+timestr+".pgm"
+		image_name = str(save_dir)+"/"+str(count)+".png"
 		#image_name = str(save_dir)+"/"+timestr+"_left"+".pgm"
 		cv2.imwrite(image_name, cv_image)
 	
