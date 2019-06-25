@@ -133,7 +133,8 @@ color_dict = {
 data, gp, model, all_vts = read_json(a+seg)
 video_file = a+seg+'/fullstream.mp4'
 if(demo_type=='k'):
-    keyframes, keyframe_indices = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
+    keyframes, keyframe_indices, gripper_status = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
+    print(keyframes)
 if(demo_type=='v'):
     keyframes, keyframe_indices = get_video_keyframe_labels(user, video_file, video_kf_file)
 # print(keyframes)
@@ -157,7 +158,9 @@ if(demo_type=='k'):
         fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
         
 
-        if kf_type=='Open' or kf_type=='Close':
+        if kf_type=='Open':
+            kf_type = 'Release'
+        if kf_type=='Close':
             kf_type = 'Grasping'
         if kf_type not in target_objects.keys():
             start_idx = end_idx
@@ -271,6 +274,8 @@ frame2ts = []
 pouring_round = 0
 font = cv2.FONT_HERSHEY_SIMPLEX
 first_grasp = False
+kf_type = 'Reaching'
+grasp_time = 0
 while success:  
     # print(count)
     frame_ts = int((count/fps)*1000000)
@@ -322,39 +327,70 @@ while success:
     
     
     # print(keyframe_indices)
+    
     if count in keyframe_indices:
         print('keyframe here!')
         idx = keyframe_indices.index(count)
-        
+        # print(keyframe_indices)
+        # print(count, keyframes[count], pouring_round)
+        # print(kf_type)
+        current_recorded_kf = keyframes[keyframe_indices[idx]]
         if idx!=len(keyframe_indices)-1:
-            kf_type = keyframes[keyframe_indices[idx+1]]
-        elif (keyframes[keyframe_indices[idx]]=='Grasping'):
-            kf_type = 'Grasping'
-        elif (keyframes[keyframe_indices[idx]]=='Reaching'):
-            kf_type = 'Reaching'
-        else:
-            kf_type = keyframes[keyframe_indices[idx]]
-            
+            next_recorded_kf = keyframes[keyframe_indices[idx+1]]
+
+        # if idx!=len(keyframe_indices)-1:
+        #     kf_type = keyframes[keyframe_indices[idx+1]]
+        # elif (current_recorded_kf=='Grasping' or current_recorded_kf=='Close'):
+        #     kf_type = 'Grasping'
+        # elif (current_recorded_kf=='Open'):
+        #     kf_type = 'Release'
+        # elif (current_recorded_kf=='Reaching'):
+        #     kf_type = 'Reaching'
+        # else:
+        #     kf_type = keyframes[keyframe_indices[idx]]
+        kf_type = current_recorded_kf  
 
     if(kf_type=='Pouring'):
-            first_grasp = True
+        first_grasp = True
     if kf_type=='Reaching' and first_grasp:
         pouring_round = 1
+        grasp_time = 0
+    # print(kf_type,pouring_round)
 
-
-    if kf_type=='Open' or kf_type=='Close':
+    if kf_type=='Open':
+        kf_type = 'Release' 
+    if kf_type=='Close':
         kf_type = 'Grasping'
+        grasp_time += 1
+
+    if kf_type=='Grasping' and grasp_time >=1:
+        grasp_time+=1
     # print(kf_type)
     # print(pouring_round)
     # print(detected_ref_frame[kf_type][pouring_round])
-    color_t = color_dict[target_objects[kf_type][pouring_round][0]]
-    color_d = color_dict[detected_ref_frame[kf_type][pouring_round]]
-    cv2.putText(img, '*****'+kf_type+'****', (600, 150), font, 1.8, (0,0,0), 8, cv2.LINE_AA)  
-    cv2.putText(img, '*****'+kf_type+'****', (600, 150), font, 1.8, (255,255,255), 5, cv2.LINE_AA) 
-    cv2.putText(img, 'Target Object: '+target_objects[kf_type][pouring_round][0], (650, 200), font, 1.0, (0,0,0), 3, cv2.LINE_AA)
-    cv2.putText(img, 'Target Object: '+target_objects[kf_type][pouring_round][0], (650, 200), font, 1.0, color_t, 2, cv2.LINE_AA)
-    cv2.putText(img, 'Detected Object: '+detected_ref_frame[kf_type][pouring_round], (650, 250), font, 1.0, (0,0,0), 3, cv2.LINE_AA)
-    cv2.putText(img, 'Detected Object: '+detected_ref_frame[kf_type][pouring_round], (650, 250), font, 1.0, color_d, 2, cv2.LINE_AA)
+
+    if grasp_time>=120 and current_recorded_kf=='Close':
+        # kf_type = next_recorded_kf
+        kf_type = 'Transport'
+
+    if(count>=keyframes.keys()[keyframes.values().index('Start')]):
+        color_t = color_dict[target_objects[kf_type][pouring_round][0]]
+        color_d = color_dict[detected_ref_frame[kf_type][pouring_round]]
+        cv2.putText(img, '*****'+kf_type+'****', (600, 150), font, 1.8, (0,0,0), 8, cv2.LINE_AA)  
+        cv2.putText(img, '*****'+kf_type+'****', (600, 150), font, 1.8, (255,255,255), 5, cv2.LINE_AA) 
+        cv2.putText(img, 'Target Object: '+target_objects[kf_type][pouring_round][0], (650, 200), font, 1.0, (0,0,0), 3, cv2.LINE_AA)
+        cv2.putText(img, 'Target Object: '+target_objects[kf_type][pouring_round][0], (650, 200), font, 1.0, color_t, 2, cv2.LINE_AA)
+        cv2.putText(img, 'Detected Object: '+detected_ref_frame[kf_type][pouring_round], (650, 250), font, 1.0, (0,0,0), 3, cv2.LINE_AA)
+        cv2.putText(img, 'Detected Object: '+detected_ref_frame[kf_type][pouring_round], (650, 250), font, 1.0, color_d, 2, cv2.LINE_AA)
+
+        cv2.putText(img, 'Grasp Time: '+str(grasp_time), (650, 300), font, 1.0, (0,0,0), 3, cv2.LINE_AA)
+        cv2.putText(img, 'Grasp Time: '+str(grasp_time), (650, 300), font, 1.0, color_t, 2, cv2.LINE_AA)
+
+    # if count in gripper_status.keys():
+    #     grip_stat = gripper_status[count]
+    #     cv2.putText(img, 'Gripper Status: '+str(grip_stat), (650, 300), font, 1.0, (0,0,0), 3, cv2.LINE_AA)
+    #     cv2.putText(img, 'Gripper Status: '+str(grip_stat), (650, 300), font, 1.0, color_t, 2, cv2.LINE_AA)
+    
 
     video.write(img)
     # cv2.imwrite('video_imgs/'+str(count)+'.png', img)

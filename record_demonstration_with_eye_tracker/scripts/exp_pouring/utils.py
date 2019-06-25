@@ -698,11 +698,17 @@ def get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file):
 
     # find segmentation points on bagfile
     all_keyframe_indices = []
+    gripper = {}
     record_k = False
     bag = rosbag.Bag(bag_file)
     print(bag_file)
+
+    # get the start time for KT recording
+    start= False
+    frame_idx = None
+
     if bag.get_message_count('/gaze_tracker')!=0:       # gaze_tracker topic was recorded
-        for topic, msg, t in bag.read_messages(topics=['/gaze_tracker','/log_KTframe']):
+        for topic, msg, t in bag.read_messages(topics=['/gaze_tracker','/log_KTframe','/joint_states','/vector/right_gripper/stat']):
             #if('vts' in msg.data):
             #print topic
             if (topic=='/log_KTframe'):
@@ -732,20 +738,32 @@ def get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file):
                     kf_type = 'Close'
 
             if (topic == '/gaze_tracker'):
-                if(record_k == True):                   
-                    if('gp' in msg.data):                   
-                        gaze_msg = msg.data
-                        s = gaze_msg.find('"ts":')
-                        e = gaze_msg.find(',')
-                        gaze_ts = gaze_msg[s+5:e]
-                        tracker_ts, frame_idx = takeClosest(videoframe2trackerts,int(gaze_ts))
+                if('gp' in msg.data):         
+                    gaze_msg = msg.data
+                    s = gaze_msg.find('"ts":')
+                    e = gaze_msg.find(',')
+                    gaze_ts = gaze_msg[s+5:e]
+                    tracker_ts, frame_idx = takeClosest(videoframe2trackerts,int(gaze_ts))
+                    if(record_k == True):  
                         all_keyframe_indices.append(frame_idx)
                         keyframes[frame_idx] = kf_type
                         record_k = False
 
+            if (topic == '/joint_states') and not start and frame_idx!=None:
+                start = True
+                keyframes[frame_idx] = 'Start'
 
+            # if (topic == '/joint_states') and frame_idx!=None:
+                # print('joint states: ',msg)
+
+            if (topic =='/vector/right_gripper/stat') and frame_idx!=None:
+                print('gripper stat: ',msg)
+                # gripper[frame_idx] =  [msg.requested_position, msg.current, msg.position]
+                gripper[frame_idx] =  [msg.is_ready, msg.is_reset, msg.is_moving]
+
+    
     bag.close()
-    return keyframes, all_keyframe_indices
+    return keyframes, all_keyframe_indices, gripper
 
 
 def get_kt_keyframes(all_vts, model, gp, video_file, bag_file):
