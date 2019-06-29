@@ -756,14 +756,14 @@ def get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file):
             # if (topic == '/joint_states') and frame_idx!=None:
                 # print('joint states: ',msg)
 
-            if (topic =='/vector/right_gripper/stat') and frame_idx!=None:
-                print('gripper stat: ',msg)
-                # gripper[frame_idx] =  [msg.requested_position, msg.current, msg.position]
-                gripper[frame_idx] =  [msg.is_ready, msg.is_reset, msg.is_moving]
+            # if (topic =='/vector/right_gripper/stat') and frame_idx!=None:
+            #     print('gripper stat: ',msg)
+            #     # gripper[frame_idx] =  [msg.requested_position, msg.current, msg.position]
+            #     gripper[frame_idx] =  [msg.is_ready, msg.is_reset, msg.is_moving]
 
     
     bag.close()
-    return keyframes, all_keyframe_indices, gripper
+    return keyframes, all_keyframe_indices
 
 
 def get_kt_keyframes(all_vts, model, gp, video_file, bag_file):

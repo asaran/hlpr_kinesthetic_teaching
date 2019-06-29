@@ -133,7 +133,7 @@ color_dict = {
 data, gp, model, all_vts = read_json(a+seg)
 video_file = a+seg+'/fullstream.mp4'
 if(demo_type=='k'):
-    keyframes, keyframe_indices, gripper_status = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
+    keyframes, keyframe_indices = get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file)
     print(keyframes)
 if(demo_type=='v'):
     keyframes, keyframe_indices = get_video_keyframe_labels(user, video_file, video_kf_file)
