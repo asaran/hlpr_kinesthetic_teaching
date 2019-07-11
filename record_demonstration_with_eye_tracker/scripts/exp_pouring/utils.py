@@ -706,6 +706,7 @@ def get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file):
     # get the start time for KT recording
     start= False
     frame_idx = None
+    grasp_time = 0
 
     if bag.get_message_count('/gaze_tracker')!=0:       # gaze_tracker topic was recorded
         for topic, msg, t in bag.read_messages(topics=['/gaze_tracker','/log_KTframe','/joint_states','/vector/right_gripper/stat']):
@@ -732,10 +733,20 @@ def get_kt_keyframes_labels(all_vts, model, gp, video_file, bag_file):
 
                 if("Open" in msg.data):
                     record_k = True
-                    kf_type = 'Open'
+                    # kf_type = 'Open'
+                    kf_type = 'Release'
                 if("Close" in msg.data):
                     record_k = True
-                    kf_type = 'Close'
+                    # kf_type = 'Close'
+                    kf_type = 'Grasping'
+
+                if(kf_type=='Grasping' and grasp_time>=1):
+                    grasp_time+=1
+                if(grasp_time>=120 and kf_type=='Grasping'):
+                    kf_type = 'Transport'
+                    
+                if(kf_type=='Reaching'):    
+                    grasp_time = 0
 
             if (topic == '/gaze_tracker'):
                 if('gp' in msg.data):         

@@ -299,7 +299,9 @@ if args.eid == '2a':
                     fixations = filter_fixations(video_file, model, gp, all_vts, demo_type, saccade_indices, start_idx, end_idx)
                     
 
-                    if kf_type=='Open' or kf_type=='Close':
+                    if kf_type=='Open':
+                        kf_type = 'Release'
+                    if kf_type=='Close':
                         kf_type = 'Grasping'
                     if kf_type not in target_objects.keys():
                         start_idx = end_idx
