@@ -15,16 +15,16 @@ n_groups = 2
 # plate_std = (4.98141893, 3.400398964)
 
 # KT - novices
-# bowl_mean = (8.564832372,2.095708538)
-# plate_mean = (3.056004211,11.54080015)
-# bowl_std = (1.895773581,0.8309969122)
-# plate_std = (1.093722849,1.785922959)
+bowl_mean = (8.564832372,2.095708538)
+plate_mean = (3.056004211,11.54080015)
+bowl_std = (1.895773581,0.8309969122)
+plate_std = (1.093722849,1.785922959)
 
 # video demos - all users
-bowl_mean = (27.2, 5.73)
-plate_mean = (3.21, 25.84)
-bowl_std = (6.904718854, 2.373352712)
-plate_std = (1.491990404, 5.949224444)
+# bowl_mean = (27.2, 5.73)
+# plate_mean = (3.21, 25.84)
+# bowl_std = (6.904718854, 2.373352712)
+# plate_std = (1.491990404, 5.949224444)
 
 # create plot
 fig, ax = plt.subplots(figsize=(500/my_dpi, 600/my_dpi), dpi=my_dpi)
@@ -42,7 +42,7 @@ alpha=0.5,
 ecolor='black',
 label='Yellow Bowl Fixations',
 capsize = 10,
-color = ['yellow'])
+color = ['orange']) #yellow
 
 rects2 = plt.bar([i + bar_width for i in index], plate_mean, bar_width, yerr = plate_std, 
 alpha=0.5,
@@ -54,9 +54,9 @@ color= ['red'])
 #y = (5,10,15,20)
 #plt.hlines(y,0,1.5,linestyles='dashed')
 ax.yaxis.grid(True)
-plt.ylim([0,42]) # video
+# plt.ylim([0,42]) # video
 # plt.ylim([0,17.5]) # KT - expert
-# plt.ylim([0,15]) # KT- novices
+plt.ylim([0,15]) # KT- novices
 
 # plt.xlabel('% time')
 # plt.ylabel('% time', size=MEDIUM_SIZE)
@@ -65,7 +65,7 @@ plt.ylim([0,42]) # video
 SMALL_SIZE = 18
 MEDIUM_SIZE = 20
 LARGE_SIZE = 20
-plt.ylabel('% time', size=MEDIUM_SIZE)
+# plt.ylabel('% time', size=MEDIUM_SIZE)
 plt.rc('font', size=MEDIUM_SIZE)
 plt.rc('xtick', labelsize=MEDIUM_SIZE)
 plt.rc('ytick', labelsize=MEDIUM_SIZE)

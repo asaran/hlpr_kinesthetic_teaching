@@ -1480,7 +1480,7 @@ if args.eid == '5a':
                     for file in bagfiles:
                         # if (file.endswith("kt-p1.bag")):
                         #     bag_file = bagloc + file
-                         if (file.endswith("kt-p1.bag") and (int(seg)==1 or int(seg)==4)):
+                        if (file.endswith("kt-p1.bag") and (int(seg)==1 or int(seg)==4)):
                             bag_file = bagloc + file
                         elif (file.endswith("kt-p2.bag") and (int(seg)==2 or int(seg)==5)):
                             bag_file = bagloc + file

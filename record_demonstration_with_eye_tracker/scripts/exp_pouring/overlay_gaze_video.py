@@ -4,7 +4,9 @@ import cv2
 import ast 
 from utils import get_color_name
 
-my_dir = '../../data/pouring/experts/KT6/5fyyvco/segments/1/'
+# my_dir = '../../data/pouring/experts/KT6/5fyyvco/segments/1/'
+my_dir = '../../data/pouring/experts/KT12/bmzotwj/segments/1/'
+
 with open(my_dir+"livedata.json", "r") as myfile:
 	data=myfile.readlines()
 
@@ -70,7 +72,8 @@ print fps 	#25 fps
 success, img = vidcap.read()
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-video = cv2.VideoWriter('../../data/gaze_pouring_color_filtered_user6_exp1.avi',fourcc,fps,(1920,1080))
+# video = cv2.VideoWriter('../../data/gaze_pouring_color_filtered_user6_exp4_again.avi',fourcc,fps,(1920,1080))
+video = cv2.VideoWriter('../../data/gaze_pouring_color_filtered_user12_exp1.avi',fourcc,fps,(1920,1080))
 
 all_ts = sorted(gp.keys())
 count = 0
@@ -107,10 +110,12 @@ while success:
 	# print(hsv)
 	# cv2.putText(img, str(hsv), (230, 250), font, 1.8, (255, 255, 0), 5, cv2.LINE_AA)
 
-	cv2.circle(img,gaze_coords, 25, (255,255,0), 3)
+	cv2.circle(img,gaze_coords, 50, (255,255,255), thickness=15)
+	img = cv2.resize(img,None,fx=0.5,fy=0.5)	#resize image
 	video.write(img)
-	cv2.imwrite('../../data/imgs_pouring_KT/'+str(count)+'.png', img)
-	# cv2.imwrite('video_imgs/'+str(count)+'.png', img)
+	# cv2.imwrite('../../data/imgs_pouring_KT/'+str(count)+'.png', img)
+
+	cv2.imwrite('../../data/video_imgs/'+str(count)+'.png', img)
 	count += 1
 	success, img = vidcap.read()
 
